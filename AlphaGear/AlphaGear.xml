@@ -506,7 +506,7 @@
     <!-- Swap Message / Active Set -->
     <Backdrop name="AG_SwapMessageBg" alpha="0" centerColor="40FF0000" edgeColor="60FF0000" clampedToScreen="false" movable="true" mouseEnabled="true" topmost="true">
       <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="GuiRoot" offsetX="400" offsetY="300"/>
-      <Dimensions x="430" y="80"/>
+      <Dimensions x="430" y="96"/>
       <Edge edgeSize="1"/>
       <OnInitialized>self:SetParent(ZO_ActionBar1)</OnInitialized>
       <OnMouseEnter>WINDOW_MANAGER:SetMouseCursor(MOUSE_CURSOR_PAN);self:SetAlpha(1)</OnMouseEnter>
@@ -520,7 +520,7 @@
       <OnInitialized>self:SetParent(ZO_ActionBar1)</OnInitialized>
       <Controls>
         <Texture name="$(parent)Icon">
-          <Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="AG_SwapMessage"/>
+          <Anchor point="LEFT" relativePoint="LEFT" relativeTo="AG_SwapMessage"/>
           <Dimensions x="64" y="64"/>
         </Texture>
         <Button name="$(parent)Number" font="AGFontSmall" color="FFAA33" horizontalAlignment="1" verticalAlignment="1">

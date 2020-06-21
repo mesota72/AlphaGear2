@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.9.1'
+AG.version = 'v6.10.0'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -10,7 +10,7 @@ AG.previousSet = nil
 AG.previousProfile = nil
 AG.accountVariableVersion = 2
 AG.characterVariableVersion = 1
-AG.isDebug = false
+AG.isDebug = true
 
 -- Mutex for Bag Updates
 AG.BagsLockCount = 0
@@ -42,10 +42,10 @@ AG.account_defaults = {
 
 	-- default positions of UIElements
 	positions = {
-		["AG_UI_ButtonBg"] = {GuiRoot:GetWidth()/2, 200},
-		["AG_SetButtonBg"] = {GuiRoot:GetWidth()-365, 450},
-		["AG_SwapMessageBg"] = {GuiRoot:GetWidth()-365, 530},
-		["AG_Panel"] = {GuiRoot:GetWidth()/2 - 335, GuiRoot:GetHeight()/2 - 410}
+		["AG_UI_ButtonBg"] = {10, 10, TOPLEFT, TOPLEFT},
+		["AG_SetButtonBg"] = {-260, -100, LEFT, RIGHT},
+		["AG_SwapMessageBg"] = {-260, 0, LEFT, RIGHT},
+        ["AG_Panel"] = {0, 0, CENTER, CENTER}
     },
 
     Integrations = {
@@ -771,10 +771,10 @@ function AG.SetupMainPanel()
         end
     )
 
-    ZO_PreHookHandler(ZO_Skills,'OnShow', function() AG.AlignMainPanel(ZO_Skills, -25) end)
-    ZO_PreHookHandler(ZO_Skills,'OnHide', AG.UnalignMainPanel)
-    ZO_PreHookHandler(ZO_PlayerInventory,'OnShow', function() AG.AlignMainPanel(ZO_PlayerInventory,0) end)
-    ZO_PreHookHandler(ZO_PlayerInventory,'OnHide', AG.UnalignMainPanel)
+    ZO_PreHookHandler(ZO_Skills,'OnShow', AG.OnShowSkills)
+    ZO_PreHookHandler(ZO_Skills,'OnHide', AG.OnHideSkills)
+    ZO_PreHookHandler(ZO_PlayerInventory,'OnShow', AG.OnShowInventory)
+    ZO_PreHookHandler(ZO_PlayerInventory,'OnHide', AG.OnHideInventory)
     ZO_PreHookHandler(ZO_ChampionPerks,'OnShow', function() SM:HideTopLevel(AG_Panel) end)
     ZO_PreHookHandler(AG_Panel,'OnHide', 
 	    function() 
@@ -1143,7 +1143,7 @@ end
 function AG.ClearAvailableEquipmentCache()
     trace ('ClearAvailableEquipmentCache')
     AVAIL_EQUIPMENT_CACHE = nil
-    if not AG.InBulkMode then
+    if not AG.InBulkMode and not AG_Panel:IsHidden() then
         table.insert (AG.Jobs, {AG.JOB_TYPE_UPDATE_UI, 0, 0})
     end
 end
@@ -2247,6 +2247,28 @@ function AG.UpdateSetButtons()
     AG_SetButtonFrameProfileName:SetText(profileLabel)
 end
 
+function AG.UpdateItemLinks()
+    trace("UpdateItemLinks")
+    for setId = 1, MAXSLOT do
+
+        local set = AG.setdata[setId].Set
+        if set.gear > 0 then
+            local gear = AG.setdata[set.gear].Gear
+            -- update itemlinks
+            for slot = 1, #SLOTS do
+                if gear[slot].id ~= 0 then
+                    local sourceBagId, sourceBagSlot = AG.GetItemFromBag(gear[slot].id)
+
+                    -- found
+                    if sourceBagSlot ~= nil then 
+                        local newLink = GetItemLink(sourceBagId, sourceBagSlot)                    
+                        gear[slot].link = newLink
+                    end
+                end
+            end
+        end
+    end
+end
 
 
 function AG.UpdateUI(from,to)
@@ -3080,39 +3102,115 @@ function AG:SetOptions()
 end
 
 --- Aligns Main Panel to the parent (skills or inventory), so that drag'n'drop is possible
-function AG.AlignMainPanel(parent, pos)
+function AG.AlignMainPanel(parent, xOffset)
+    trace('AlignMainPanel')
     AG_Panel:ClearAnchors()
-    AG_Panel:SetAnchor(RIGHT, parent, LEFT, pos, 0)
-    AG_SwapMessage:SetHidden(true)
-	AG_SwapMessageBg:SetHidden(true)
+    AG_Panel:SetAnchor(RIGHT, parent, LEFT, xOffset, 0)
 end
 
 --- Resets the position of the main panel to it's previous state 
 function AG.UnalignMainPanel()
     trace('UnalignMainPanel')
-	local pos = AG.account.positions[AG_Panel:GetName()]
+    AG.SetElementAnchor(AG_Panel)
+end
 
-    AG_Panel:ClearAnchors()
-    AG_Panel:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, pos[1], pos[2])
+function AG.HideSwapMessage()
+    AG_SwapMessage:SetHidden(true)
+	AG_SwapMessageBg:SetHidden(true)
+end
 
-    local visible = AG.isShowActiveSet() and AG.setdata.lastset
+function AG.OnShowSkills()
+    AG.HideSwapMessage()
+    AG.AlignMainPanel(ZO_Skills, -25)
+end
 
-    AG_SwapMessage:SetHidden(not visible)
-	AG_SwapMessageBg:SetHidden(not visible)
+function AG.OnHideSkills()
+    AG.UnalignMainPanel()
+    AG.setupActiveSet()    
+end
+
+function AG.OnShowInventory()
+    AG.HideSwapMessage()
+    AG.AlignMainPanel(ZO_PlayerInventory, -25)
+end
+
+function AG.OnHideInventory()
+    AG.UnalignMainPanel()
+    AG.setupActiveSet()
+end
+
+
+
+
+function AG.SetElementAnchor(element)
+    local elementName = element:GetName()
+    local pos = AG.account.positions[elementName]
+		
+    if pos then
+        local xOffset = pos[1]
+        local yOffset = pos[2]
+        local relX = pos[3]
+        local relY = pos[4]
+        local relPos = pos[5]
+
+        if relX and relY and relPos then
+            xOffset = relX * GuiRoot:GetWidth()
+            yOffset = relY * GuiRoot:GetHeight()
+            trace("restore rel %f/%f", relX, relY)
+        else
+            relPos = CENTER
+        end
+
+        element:ClearAnchors()
+        element:SetAnchor(CENTER, GuiRoot, relPos, xOffset, yOffset)
+    end
 end
 
 
 function AG.InitPositions()
-	for i = 1, table.getn(UIElements) do
-		local name = UIElements[i]:GetName()
-		local pos = AG.account.positions[name]
-		
-		if pos then
-			UIElements[i]:ClearAnchors()
-			UIElements[i]:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, pos[1], pos[2])
-		end
+    trace ("init positions")
+    for i = 1, table.getn(UIElements) do
+        AG.SetElementAnchor(UIElements[i])
 	end
 end
+
+function AG.StorePosition(control)
+    local name = control:GetName()
+    
+    -- added storing relativ positions, so that scaling doesn't affect pos
+    local centerX, centerY = control:GetCenter()
+    local rootCenterX, rootCenterY = GuiRoot:GetCenter()
+    local rootWidth, rootHeight = GuiRoot:GetDimensions()
+    local relPoint 
+    local relX
+    local relY
+
+
+    if centerX > rootCenterX then
+        relX = (centerX-rootWidth)/rootWidth
+        if centerY > rootCenterY then
+            relY = (centerY-rootHeight)/rootHeight
+            relPoint = BOTTOMRIGHT
+        else
+            relY = centerY/rootHeight
+            relPoint = TOPRIGHT
+        end
+    else
+        relX = centerX/rootWidth
+        if centerY > rootCenterY then
+            relY = (centerY-rootHeight)/rootHeight
+            relPoint = BOTTOMLEFT
+        else
+            relY = centerY/rootHeight
+            relPoint = TOPLEFT
+        end
+    end
+
+    trace("stored rel %f/%f", relX, relY)
+
+	AG.account.positions[name] = {control:GetLeft(), control:GetTop(), relX, relY, relPoint}
+end
+
 
 
 function AG.ResetPositions()
@@ -3129,17 +3227,13 @@ function AG.ResetPositions()
 			UIElements[i]:SetAnchor(TOPLEFT, ActionButton8, TOPRIGHT, 50, -10)
 		else
 			local pos = AG.account_defaults.positions[name]
-			UIElements[i]:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, pos[1], pos[2])
+			UIElements[i]:SetAnchor(pos[3], GuiRoot, pos[4], pos[1], pos[2])
 		end
 		
 		AG.StorePosition(UIElements[i])
 	end
 end
 
-function AG.StorePosition(control)
-	local name = control:GetName()
-	AG.account.positions[name] = {control:GetLeft(), control:GetTop()}
-end
 
 --- Opens a menu for manually choosing a skill bar icon
 function AG.ShowIconMenu(cp, button, bar)
@@ -3306,6 +3400,14 @@ function AG.ShowMain()
         EM:UnregisterForEvent('AG_Event_Cursor_Pickup', EVENT_CURSOR_PICKUP)
         EM:UnregisterForEvent('AG_Event_Cursor_Drop', EVENT_CURSOR_DROPPED)
     else
+        AG.UpdateItemLinks()
+
+        for setIndex = 1, MAXSLOT do
+            for slotId = 1, #SLOTS do
+                AG.ShowButton(WM:GetControlByName('AG_Button_Gear_'..setIndex..'_'..slotId))
+            end
+        end
+    
         AG.UpdateUI()
         trace('Register DD-Events')
         EM:RegisterForEvent('AG_Event_Cursor_Pickup', EVENT_CURSOR_PICKUP, AG.HandleCursorPickup)
@@ -3684,7 +3786,10 @@ function AG.LoadProfile(profileId)
 	AG.setdata.currentProfileId = profileId
 	
 	-- update UI and equip set
-	-- skills & gear
+    -- skills & gear
+    
+    AG.UpdateItemLinks()
+
 	for setIndex = 1, MAXSLOT do
 		for slotId = 1, 6 do
 			AG.ShowButton(WM:GetControlByName('AG_Button_Skill_'..setIndex..'_'..slotId))
@@ -3698,7 +3803,7 @@ function AG.LoadProfile(profileId)
 	d("Loaded profile '"..AG.setdata.profiles[profileId].name.."'")
 	
 	AG.HideEditPanel()
-	
+    
 	AG.UpdateUI()
 	AG.previousSet = nil
 	
@@ -3765,6 +3870,20 @@ function AG.ToggleDebug(extra)
     end
 end
 
+--[[
+function AG.OnGamepadPreferredModeChanged()
+    trace ("GP Mode changed")
+    -- update Layout
+    AG.InitPositions()
+end
+]]--
+
+function AG.OnScreenResized()
+    trace ("Screen size changed")
+    -- update Layout
+    AG.InitPositions()
+end
+
 
 function AG:Initialize()
 
@@ -3778,6 +3897,9 @@ function AG:Initialize()
     EM:RegisterForEvent('AG4', EVENT_INVENTORY_SINGLE_SLOT_UPDATE, AG.HandleInventorySlotUpdate)
     EM:RegisterForEvent('AG4', EVENT_OPEN_BANK, AG.ClearAvailableEquipmentCache)
     EM:RegisterForEvent('AG4', EVENT_CLOSE_BANK, AG.ClearAvailableEquipmentCache)
+    -- EM:RegisterForEvent("AG_GAMESTYLE_CHANGED", EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, AG.OnGamepadPreferredModeChanged)
+    EM:RegisterForEvent("AG_SCREEN_SIZE_CHANGED", EVENT_SCREEN_RESIZED, AG.OnScreenResized)
+
 
     -- EM:RegisterForEvent("AG4", EVENT_OUTFIT_EQUIP_RESPONSE, AG.ShowOutfits)
     -- EM:RegisterForEvent("AG4", EVENT_OUTFIT_CHANGE_RESPONSE, AG.ShowOutfits)
