@@ -324,9 +324,9 @@ read_globals = {
     "SI_NO_OUTFIT_EQUIP_ENTRY",
     "GetNumChampionDisciplines",
     "GetNumChampionDisciplineSkills",
-    "",
-    "",
-    "",
+    "CENTER",
+    "BOTTOMRIGHT",
+    "EVENT_SCREEN_RESIZED",
     "",
 
 

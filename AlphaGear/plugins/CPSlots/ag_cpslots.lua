@@ -70,7 +70,7 @@ function AGplugCPS.LoadCPSProfile(hostKey, newProfileName)
 		return
 	end
 
-	if hostKey ~= AGplugCPS.CPS_KEEP and hostKey ~= nil then
+	if hostKey ~= AGplugCPS.CPS_KEEP and hostKey ~= nil and hostKey ~= "" then
 		AGplugCPS.InitPlugin()
 
 		-- find slot by host and name
