@@ -122,6 +122,7 @@ read_globals = {
     "ZO_SmithingTopLevelDeconstructionPanelInventoryBackpack",
     "ZO_SmithingTopLevelImprovementPanelInventoryBackpack",
     "zo_strformat",
+    "ZO_ActionBar1WeaponSwap",
     "ZO_OUTFIT_MANAGER",
     "EVENT_MANAGER",
     "WINDOW_MANAGER",

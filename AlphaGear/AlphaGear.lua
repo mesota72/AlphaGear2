@@ -10,7 +10,7 @@ AG.previousSet = nil
 AG.previousProfile = nil
 AG.accountVariableVersion = 2
 AG.characterVariableVersion = 1
-AG.isDebug = true
+AG.isDebug = false
 
 -- Mutex for Bag Updates
 AG.BagsLockCount = 0
@@ -3152,17 +3152,25 @@ function AG.SetElementAnchor(element)
         local relX = pos[3]
         local relY = pos[4]
         local relPos = pos[5]
+        local rootPos = CENTER
 
         if relX and relY and relPos then
             xOffset = relX * GuiRoot:GetWidth()
             yOffset = relY * GuiRoot:GetHeight()
             trace("restore rel %f/%f", relX, relY)
         else
-            relPos = CENTER
+            -- no relative position available
+            relPos = TOPLEFT
+            rootPos = TOPLEFT
         end
 
         element:ClearAnchors()
-        element:SetAnchor(CENTER, GuiRoot, relPos, xOffset, yOffset)
+        element:SetAnchor(rootPos, GuiRoot, relPos, xOffset, yOffset)
+
+        if rootPos == TOPLEFT then
+            -- must store relative positions
+            AG.StorePosition(element)
+        end
     end
 end
 
@@ -3177,7 +3185,7 @@ end
 function AG.StorePosition(control)
     local name = control:GetName()
     
-    -- added storing relativ positions, so that scaling doesn't affect pos
+    -- added storing relative positions, so that scaling doesn't affect pos
     local centerX, centerY = control:GetCenter()
     local rootCenterX, rootCenterY = GuiRoot:GetCenter()
     local rootWidth, rootHeight = GuiRoot:GetDimensions()
@@ -3455,8 +3463,25 @@ end
 
 function AG.SwapMessage()
     trace('SwapMessage')
+    local flashCount = 0
+
+    local function FlashSwapButton()
+        flashCount = flashCount + 1
+        ZO_ActionBar1WeaponSwap:SetShowingHighlight(flashCount % 2 == 1)
+
+        -- flash 10 times at max
+        if SWAP and flashCount < 20 then
+            zo_callLater(function() FlashSwapButton() end, 500)
+        else
+            ZO_ActionBar1WeaponSwap:SetShowingHighlight(false)
+        end
+    end
 
     AG.UpdateSwapMessage()
+
+    if SWAP then
+        FlashSwapButton()
+    end
 
     if AG.isShowChangeNotification() and AG.setdata.lastset then
         PlaySound('Market_PurchaseSelected')
@@ -3472,7 +3497,12 @@ end
 
 function AG.Swap(_,isSwap)
     trace('Swap')
+
+
+
     if isSwap and not IsBlockActive() then
+
+
         if AG.setdata.lastset and SWAP then
             local pair = GetActiveWeaponPairInfo()
             if AG.setdata[AG.setdata.lastset].Set.skill[pair] ~= 0 then AG.LoadBar(AG.setdata[AG.setdata.lastset].Set.skill[pair]) end
