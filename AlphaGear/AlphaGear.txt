@@ -1,12 +1,12 @@
-## Title: |cFFAA33AlphaGear 2|r v6.12.0
+## Title: |cFFAA33AlphaGear 2|r v6.12.1
 ## APIVersion: 100032 100033
-## Version: 6.12.0
+## Version: 6.12.1
 ## SavedVariables: AGX2_Account
 ## SavedVariables: AGX2_Character
 ## Author: mesota
 ## Description: Anything you need to manage your builds. Configurable profiles, builds, skill and gear sets, auto repair and auto weapon charge, deposit and withdraw function. Originally by AlphaLemming.
 ## DependsOn: LibAddonMenu-2.0
-## OptionalDependsOn: LibStub LibZone FCOItemSaver ChampionPointsSlots
+## OptionalDependsOn: LibZone FCOItemSaver ChampionPointsSlots
 ## IsLibrary: false
 
 lang/en.lua
