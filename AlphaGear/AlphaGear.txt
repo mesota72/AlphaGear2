@@ -1,6 +1,6 @@
-## Title: |cFFAA33AlphaGear 2|r v6.12.1
-## APIVersion: 100032 100033
-## Version: 6.12.1
+## Title: |cFFAA33AlphaGear 2|r v6.15.0
+## APIVersion: 101032
+## Version: 6.15.0
 ## SavedVariables: AGX2_Account
 ## SavedVariables: AGX2_Character
 ## Author: mesota

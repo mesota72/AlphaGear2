@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.12.1'
+AG.version = 'v6.15.0'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -1687,7 +1687,7 @@ end
 function AG.LoadSetInternal(nr)
     trace("LoadSetInternal: %d", nr)
 
-    if AreActionBarsLocked() then
+    if ZO_ActionBar_AreActionBarsLocked() then
         d("Action bars are locked. Can't load set. You might have to relaod the UI!")
         return
     end
