@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.15.0'
+AG.version = 'v6.15.1'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -1610,11 +1610,11 @@ function AG.LoadOutfit(outfitid)
     if not outfitid then return end
 
     if outfitid == AG.OUTFIT_NONE then
-        UnequipOutfit()
+        OFMGR:UnequipOutfit(GAMEPLAY_ACTOR_CATEGORY_PLAYER)
     elseif outfitid == AG.OUTFIT_KEEP then
         -- Just do nothing
     else
-        OFMGR:EquipOutfit(outfitid)
+        OFMGR:EquipOutfit(GAMEPLAY_ACTOR_CATEGORY_PLAYER, outfitid)
     end
 end
 
