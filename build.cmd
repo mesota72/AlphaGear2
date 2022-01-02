@@ -1,6 +1,6 @@
 @echo off
 setlocal
-set name=AlphaGear_6.13.0.zip
+set name=AlphaGear_6.15.0.zip
 
 rem -----------------
 

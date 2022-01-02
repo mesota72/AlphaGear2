@@ -75,9 +75,9 @@ function AGIntDlg.SetupOutfitCombo(dropdown)
     end
 
     -- Add available Outfit Items
-    local numOutfits = OFMGR:GetNumOutfits()
+    local numOutfits = OFMGR:GetNumOutfits(GAMEPLAY_ACTOR_CATEGORY_PLAYER) 
     for outfitIndex = 1, numOutfits do
-        local outfitManipulator = OFMGR:GetOutfitManipulator(outfitIndex)
+        local outfitManipulator = OFMGR:GetOutfitManipulator(GAMEPLAY_ACTOR_CATEGORY_PLAYER, outfitIndex)
         local entry = ZO_ComboBox:CreateItemEntry(outfitManipulator:GetOutfitName(), OnOutfitEntrySelected)
         entry.outfitIndex = outfitIndex
         dropdown:AddItem(entry, ZO_COMBOBOX_SUPRESS_UPDATE)
