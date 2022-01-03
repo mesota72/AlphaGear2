@@ -20,9 +20,9 @@ AG.plugins.CPSlots = AG.plugins.CPSlots or {}
 ------------------------------------------------------------------------------------------------------------------------
 local CPS_HOST_USERS = 'Users'
 local CPS_HOST_USERS_ACCOUNT = "UsersAccount"
-local CPS_HOST_TRIAL = "Trial"
-local CPS_HOST_TRIAL_ALCAST = "TrialAlcast"
-local CPS_HOST_TRIAL_NEFAS = "TrialNefas"
+-- local CPS_HOST_TRIAL = "Trial"
+-- local CPS_HOST_TRIAL_ALCAST = "TrialAlcast"
+-- local CPS_HOST_TRIAL_NEFAS = "TrialNefas"
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Local variables
@@ -31,17 +31,12 @@ local CPS_HOST_TRIAL_NEFAS = "TrialNefas"
 local AGplugCPS = AG.plugins.CPSlots
 
 AGplugCPS.CPS_KEEP = '$$KEEPCPS$$'
-AGplugCPS.Initialized = false
-
 
 -- Hosts map: host-key => {label, slot-table, name-table}
 -- will be filled on init
 AGplugCPS.HOSTS = {
 	[CPS_HOST_USERS] = {},
-	[CPS_HOST_USERS_ACCOUNT] = {},
-	[CPS_HOST_TRIAL] = {},
-	[CPS_HOST_TRIAL_ALCAST] = {},
-	[CPS_HOST_TRIAL_NEFAS] = {}
+	[CPS_HOST_USERS_ACCOUNT] = {}
 }
 
 
@@ -58,7 +53,7 @@ local function trace(fmt, ...)
 end
 
 function AGplugCPS.isAddonReady()
-	return (ChampionPointsSlots ~= nil and ChampionPointsSlots.setCPBuild ~= nil) or false
+	return (CPS ~= nil and CPS.setCPBuild ~= nil) or false
 end
 
 function AGplugCPS.useAddon()
@@ -71,7 +66,7 @@ function AGplugCPS.LoadCPSProfile(hostKey, newProfileName)
 	end
 
 	if hostKey ~= AGplugCPS.CPS_KEEP and hostKey ~= nil and hostKey ~= "" then
-		AGplugCPS.InitPlugin()
+		AGplugCPS.LoadCPSSlots()
 
 		-- find slot by host and name
 		local host = AGplugCPS.HOSTS[hostKey]
@@ -79,9 +74,11 @@ function AGplugCPS.LoadCPSProfile(hostKey, newProfileName)
 		if host then
 			for id, profileName in pairs(host.nameMap) do
 				if newProfileName == profileName then
-					ChampionPointsSlots.currentSetName = newProfileName
-					ChampionPointsSlots.currentSlot = host.slotTable[id]
-					ChampionPointsSlots:setCPBuild(ChampionPointsSlots.currentSlot, false)
+					CPS.currentSetName = newProfileName
+					CPS.currentSlot = host.slotTable[id]
+					CPS.currentType = host.type
+
+					CPS:setCPBuild(CPS.currentSlot, false)
 					d(zo_strformat("|cFFFFFFCP set <<1>> / <<2>> loaded.|r", hostKey, newProfileName)) 
 					return
 				end
@@ -131,7 +128,7 @@ end
 function AGplugCPS.GetCPSProfiles()
 	local CPSProfiles = {}
 	
-	AGplugCPS.InitPlugin()
+	AGplugCPS.LoadCPSSlots()
 
 	-- copy names of profiles
 	for key, host in pairs(AGplugCPS.HOSTS) do
@@ -152,20 +149,20 @@ end
 
 
 -- initialization
-function AGplugCPS.InitPlugin()
-	if AGplugCPS.Initialized then
-		return 
-	end
-
+function AGplugCPS.LoadCPSSlots()
 	for key, host in pairs(AGplugCPS.HOSTS) do
 		if key == CPS_HOST_USERS then
 			host.label = "Users"
-			host.slotTable = ChampionPointsSlots.sv.Users or {}
-			host.nameMap = ChampionPointsSlots.sv.MapIndexToName or {}
+			host.slotTable = CPS.sv.Users or {}
+			host.nameMap = CPS.sv.MapIndexToName or {}
+			host.type = CPS.USER_PROF
 		elseif key == CPS_HOST_USERS_ACCOUNT then
 			host.label = "Users Account Wide"
-			host.slotTable = ChampionPointsSlots.sv.UsersAccountWide  or {}
-			host.nameMap = ChampionPointsSlots.sv.MapIndexToAccountName  or {}
+			host.slotTable = CPS.svAccount.UsersAccount  or {}
+			host.nameMap = CPS.svAccount.MapIndexToAccountName or {}
+			host.type = CPS.ACCOUNT_PROF
+
+--[[			
 		elseif key == CPS_HOST_TRIAL then
 			host.label = "Trial"
 			host.slotTable = ChampionPointsSlots.sv.Trial
@@ -178,8 +175,7 @@ function AGplugCPS.InitPlugin()
 			host.label = "Trial By Nefas"
 			host.slotTable = ChampionPointsSlots.sv.TrialbyNefasQS
 			host.nameMap = ChampionPointsSlots.sv.MapIndexToNefas
+--]]			
 		end
 	end
-	
-	AGplugCPS.Initialized = true
 end

@@ -8,8 +8,9 @@ globals = {
 -- Integration
     "AGIntDlg",
     "ASAPI",
-    "ChampionPointsSlots",
+    "CPS",
     "FCOIS",
+    "CSPS",
 
 -- AG Options
 "AG_OPTION_SHOW_MAIN_BUTTON",
