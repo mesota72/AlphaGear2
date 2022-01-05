@@ -1249,6 +1249,17 @@ function AG.LoadItem(nr, slotIndex, set)
     end
 end
 
+--- Returns true if item is mystic by itemlink
+function AG.IsItemLinkMythic(link) 
+    return ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE == GetItemLinkDisplayQuality(link)
+end
+
+--- Returns true if item is mystic by bag/slot
+function AG.IsItemMythic(bag, slot) 
+    local _, _, _, _, _, _, _, _, displayQuality = GetItemInfo(bag, slot)
+    return ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE == displayQuality
+end
+
 --- loads a gear-set
 -- @param nr Number of build
 -- @param set Number of set
@@ -1267,9 +1278,14 @@ function AG.LoadGear(nr, set)
 
     local newGear = AG.setdata[nr].Gear
     
+    local newGearHasMystic = false
+
     for slotIndex = 1, #SLOTS do
 	    -- slotName = SLOTS[slotIndex][3]
-	    local hasSet, setName, _, _, _, setId = GetItemLinkSetInfo(newGear[slotIndex].link)
+        local newLink = newGear[slotIndex].link
+	    local hasSet, setName, _, _, _, setId = GetItemLinkSetInfo(newLink)
+
+        newGearHasMystic = newGearHasMystic or AG.IsItemLinkMythic(newLink)
         
         if hasSet and setId == TBSSetId then
 	        -- trace("Adding set item at front of equip list: slot "..slotName.." set "..setName.." id "..setId)
@@ -1281,19 +1297,20 @@ function AG.LoadGear(nr, set)
     end
 
     -- unequipp mythic item prior equipping another 
-
-
+    if newGearHasMystic then
+        for slotIndex = 1, #SLOTS do
+            local targetSlot = SLOTS[slotIndex][1]
+            if AG.IsItemMythic(BAG_WORN, targetSlot) then
+                table.insert(AG.Jobs, {AG.JOB_TYPE_UNEQUIP_GEAR, targetSlot}) 
+                break
+            end
+        end
+    end
 
     for j = 1, #SLOTS do
 	    local slotIndex = slotOrder[j]
 	    AG.LoadItem(nr, slotIndex, set) 
     end
-
-    --[[
-    for slotIndex = 1, #SLOTS do
-        AG.LoadItem(nr, slotIndex, set)
-    end
---]]
 
     table.insert(AG.Jobs, {AG.JOB_TYPE_STOP_BULK_MODE, 0, 0})
 
