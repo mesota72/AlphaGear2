@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.15.2'
+AG.version = 'v6.15.3'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -156,6 +156,17 @@ local DRAG_TARGET_SLOTS = {
     [EQUIP_TYPE_POISON] = { 15, 16 }
 }
 
+local QUALITY_COLORS = {
+    [ITEM_DISPLAY_QUALITY_TRASH] = {GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_TRASH)},
+    [ITEM_DISPLAY_QUALITY_NORMAL] = {GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_NORMAL)},
+    [ITEM_DISPLAY_QUALITY_MAGIC] = {GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_MAGIC)},
+    [ITEM_DISPLAY_QUALITY_ARCANE] = {GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_ARCANE)},
+    [ITEM_DISPLAY_QUALITY_ARTIFACT] = {GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_ARTIFACT)},
+    [ITEM_DISPLAY_QUALITY_LEGENDARY] = {GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_LEGENDARY)},
+    [ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE] = {GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE)}
+}
+-- ZO_ColorDef:New(GetInterfaceColor(INTERFACE_COLOR_TYPE_ITEM_QUALITY_COLORS, ITEM_DISPLAY_QUALITY_MAGIC)),
+
 -- list of slots which can contain identical items
 local DUPSLOTS = {1,2,3,4,13,14,15,16}
 local TWINSLOTS = {
@@ -203,15 +214,9 @@ end
 -- @param a alpha value
 -- @return rgb and alpha
 local function Quality(link,a)
-    local QUALITY = {
-        [0]={0.65,0.65,0.65,a},
-        [1]={1,1,1,a},
-        [2]={0.17,0.77,0.05,a},
-        [3]={0.22,0.57,1,a},
-        [4]={0.62,0.18,0.96,a},
-        [5]={0.80,0.66,0.10,a}
-    }
-    return unpack(QUALITY[GetItemLinkQuality(link)])
+    local displayQuality = GetItemLinkDisplayQuality(link);
+    local cols = QUALITY_COLORS[displayQuality]
+    return cols[1], cols[2], cols[3], a
 end
 
 local function Zero(val) if val == 0 then return nil else return val end end
@@ -1274,7 +1279,11 @@ function AG.LoadGear(nr, set)
 	        table.insert(slotOrder,slotIndex)
 	    end
     end
-	
+
+    -- unequipp mythic item prior equipping another 
+
+
+
     for j = 1, #SLOTS do
 	    local slotIndex = slotOrder[j]
 	    AG.LoadItem(nr, slotIndex, set) 
