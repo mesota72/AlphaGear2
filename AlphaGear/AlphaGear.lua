@@ -1249,12 +1249,12 @@ function AG.LoadItem(nr, slotIndex, set)
     end
 end
 
---- Returns true if item is mystic by itemlink
+--- Returns true if item is mythtic by itemlink
 function AG.IsItemLinkMythic(link) 
     return ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE == GetItemLinkDisplayQuality(link)
 end
 
---- Returns true if item is mystic by bag/slot
+--- Returns true if item is mythtic by bag/slot
 function AG.IsItemMythic(bag, slot) 
     local _, _, _, _, _, _, _, _, displayQuality = GetItemInfo(bag, slot)
     return ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE == displayQuality
