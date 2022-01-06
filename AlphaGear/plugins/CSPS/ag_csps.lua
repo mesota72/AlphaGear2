@@ -24,9 +24,7 @@ AG.plugins.CSPS = AG.plugins.CSPS or {}
 ------------------------------------------------------------------------------------------------------------------------
 --Local "speed up" variables
 local AGplugCSPS = AG.plugins.CSPS
-
 AGplugCSPS.GROUP_ID_KEEP = -1
-
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Functions
@@ -40,6 +38,7 @@ local function trace(fmt, ...)
 	end
 end
 
+-- Check if CSPS is loaded
 function AGplugCSPS.isAddonReady()
 	return (CSPS ~= nil and CSPS.setCPBuild ~= nil) or false
 end
@@ -75,6 +74,7 @@ function AGplugCSPS.GetCPSGroups()
 		local groupInfo = {}
 
 		groupInfo.label = 'Group '..i
+		groupInfo.id = 1
 
 		CPSGroups[i] = groupInfo
 	end

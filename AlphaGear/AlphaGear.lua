@@ -339,7 +339,7 @@ function AG.DrawMenu(c, line)
     AG_PanelMenu:ToggleHidden()
     AG_PanelMenu:SetAnchor(3, c, 6, 0, 0)
 
-    local h, c1 = 0
+    local h, c1 = 0, 0 
 
     for z,x in pairs(line) do
         c1 = AG_PanelMenu:GetChild(z)
@@ -969,7 +969,7 @@ end
 function AG.DrawSetButtonsUI()
     trace ("DrawSetButtonsUI")
 
-    local xpos, ypos, c = 0, 27
+    local xpos, ypos, c = 0, 27, nil
     for x = 1, MAXSLOT do
         c = WM:GetControlByName('AG_UI_SetButton_'..x)
         if not c then
@@ -3280,7 +3280,7 @@ function AG.ShowIconMenu(cp, button, bar)
 
         if not AG_PanelIcons:IsHidden() then
             for x = 1,AG_PanelIconsScrollChild:GetNumChildren() do AG_PanelIconsScrollChild:GetChild(x):SetHidden(true) end
-            local xpos, ypos, name, c = 10, 10
+            local xpos, ypos, name, c = 10, 10, nil, nil
             for x,icon in pairs(ICON) do
                 name = 'AG_SetIcon_'..x
                 c = WM:GetControlByName(name)

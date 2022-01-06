@@ -12,6 +12,13 @@ globals = {
     "FCOIS",
     "CSPS",
 
+    -- Graymind Quickslot Bar
+    "QSB_P1",
+    "QSB_P2",
+    "QSB_P3",
+    "QSB_P4",
+    "QSB_P5",
+
 -- AG Options
 "AG_OPTION_SHOW_MAIN_BUTTON",
 "AG_OPTION_SHOW_SET_BUTTONS",
@@ -32,7 +39,150 @@ globals = {
 "AG_OPTION_LOAD_LAST_BUILD_OF_PROFILE",
 
  -- AlphaGear UI
-    "AG",
+    AG = {
+        fields = {
+            name = {},
+            displayname = {},
+            version = {},
+            author = {},
+            init = {},
+            pendingSet = {},
+            previousSet = {},
+            previousProfile = {},
+            accountVariableVersion = {},
+            characterVariableVersion = {},
+            BagsLockCount = {},
+            initSetData = {},
+            setdata_defaults = {},
+            setdata = {
+                fields = {
+                    lastset = {},
+                    currentProfileId = {},
+                    setamount = {},
+                    profiles = {
+                        fields = {
+                            name = {}
+                        }
+                    },
+                    Gear = {
+                        fields = {
+                            id = {}
+                        }
+                    }
+                }
+            },
+            LoadSet = {},
+            LoadGear = {},
+            LoadChampionPoints = {},
+            LoadOutfitOrStyle = {},
+            LoadOutfit = {},
+            Jobs = {},
+            NextEventTime  = {},
+            InBulkMode = {},
+            SetConnect = {},
+            setupMainButton = {},
+            setupSetButtons = {},
+            setupGearIcon = {},
+            setupWeaponIconsAndCharge = {},
+            setupMarkSetItems = {},
+            setupItemCondition = {},
+            setupAutoClose = {},
+            setupLockUI = {},
+            setupActiveSet = {},
+            setupAutoRepairAtStores = {},
+            InitPositions = {},
+            DrawSetButtonsUI = {},
+            JOB_TYPE_UNEQUIP_GEAR = {},   
+            JOB_TYPE_DEPOSIT_GEAR = {},
+            JOB_TYPE_WITHDRAW_GEAR = {},
+            JOB_TYPE_UPDATE_UI = {},
+            JOB_TYPE_LOAD_SKILL_BAR = {},
+            JOB_TYPE_SHOW_SWAP_MSG = {},
+            JOB_TYPE_EQUIP_GEAR = {},
+            JOB_TYPE_START_BULK_MODE = {},
+            JOB_TYPE_STOP_BULK_MODE = {},
+            JOB_TYPE_MESSAGE = {},
+            JOB_TYPE_PREPARE_TOON = {},
+            OUTFIT_NONE = {},
+            OUTFIT_KEEP = {},
+            MODE_GEAR = {},
+            MODE_SKILL = {},
+            MENU_TYPE_GEAR = {},
+            MENU_TYPE_SKILLS = {},
+            isDebug = {},
+            Tooltip = {},
+            DrawButton = {}, 
+            handleBuildIconChanged = {},
+            plugins = {
+                fields = {
+                    FCOIS = {
+                        fields = {
+                            isFCOISMarkerIconsEnabled = {},
+                            getFCOISIconId = {},
+                            getFCOISGearSetMarkerIconsList = {},
+                            setFCOISIconId = {}, 
+                            isAddonReady = {}, 
+                            useAddon = {}
+                        }
+                    },
+                    CSPS = {
+                        fields = {
+                            GROUP_ID_KEEP = {},
+                            isAddonReady = {}, 
+                            useAddon = {},
+                            LoadCPSGroup = {},
+                            GetCPSGroups = {}
+                        }
+                    },
+                    CPSlots = {
+                        fields = {
+                            GetCPSProfiles = {}, 
+                            CPS_KEEP = {},
+                            isAddonReady = {}, 
+                            useAddon = {}
+                        }
+                    },
+                    GQSB = {
+                        fields = {
+                            PRESET_ID_KEEP = {},
+                            isAddonReady = {}, 
+                            useAddon = {},
+                            LoadQSPreset = {},
+                            GetQSPresets = {}
+                        }
+                    },
+                    AlphaStyle = {
+                        fields = {
+                            STYLE_KEEP = {},
+                            GetStyles = {},
+                            isAddonReady = {}, 
+                            useAddon = {}
+                        }
+                    }
+                }
+            },
+            account = {
+                fields = {
+                    Integrations = {
+                        fields = {
+                            QuickSlot = {
+                                fields = {
+                                    UseGQCB = {}
+                                }
+                            },
+                            Champion = {
+                                fields = {
+                                    UseCSPS = {}
+                                }
+                            } 
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+
     "AG_PanelMenu",
     "AG_PanelSkillPanelScrollChild",
     "AG_PanelGearPanelScrollChild",
@@ -111,10 +261,6 @@ globals = {
 
 -- these globals can only be accessed.
 read_globals = {
-    "",
-    "",
-    "",
-    "",
 
 -- ESO API
     "ITEM_QUALITY_TRASH",
