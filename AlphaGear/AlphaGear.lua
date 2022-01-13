@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.15.3'
+AG.version = 'v6.15.4'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -1279,13 +1279,17 @@ function AG.LoadGear(nr, set)
     local newGear = AG.setdata[nr].Gear
     
     local newGearHasMystic = false
+    local newMythicSlot = nil
 
     for slotIndex = 1, #SLOTS do
 	    -- slotName = SLOTS[slotIndex][3]
         local newLink = newGear[slotIndex].link
 	    local hasSet, setName, _, _, _, setId = GetItemLinkSetInfo(newLink)
 
-        newGearHasMystic = newGearHasMystic or AG.IsItemLinkMythic(newLink)
+        if not newGearHasMystic and AG.IsItemLinkMythic(newLink) then
+            newGearHasMystic = true 
+            newMythicSlot = SLOTS[slotIndex][1]
+        end
         
         if hasSet and setId == TBSSetId then
 	        -- trace("Adding set item at front of equip list: slot "..slotName.." set "..setName.." id "..setId)
@@ -1301,7 +1305,12 @@ function AG.LoadGear(nr, set)
         for slotIndex = 1, #SLOTS do
             local targetSlot = SLOTS[slotIndex][1]
             if AG.IsItemMythic(BAG_WORN, targetSlot) then
-                table.insert(AG.Jobs, {AG.JOB_TYPE_UNEQUIP_GEAR, targetSlot}) 
+                -- only unequipp if slot has changed, otherwise its unequipped automatically
+                if targetSlot ~= newMythicSlot then
+                    trace("Must unequipp mythic item. New slot: "..newMythicSlot.." old slot: "..targetSlot)
+                    table.insert(AG.Jobs, {AG.JOB_TYPE_UNEQUIP_GEAR, targetSlot}) 
+                end
+                -- never more than one 
                 break
             end
         end
@@ -1670,25 +1679,43 @@ function AG.ToggleSet()
 end
 
 function AG.LoadNextSet()
-    local nextSet
-
-    if AG.setdata.lastset and AG.setdata.lastset < MAXSLOT then
-        nextSet = AG.setdata.lastset + 1
-    else
-        nextSet = 1
+    -- init after reload
+    if not AG.setdata.lastset or AG.setdata.lastset == 0 then
+        AG.setdata.lastset = 1
     end
+
+    local nextSet = AG.setdata.lastset
+    local oldSet = AG.setdata.lastset
+
+    repeat
+        if nextSet < MAXSLOT then
+            nextSet = nextSet + 1
+        else
+            nextSet = 1
+        end
+        trace ("loop through builds: old "..oldSet.." new "..nextSet)
+    until (nextSet == oldSet) or (not AG.IsBuildEmpty(AG.setdata, nextSet))
 
     AG.LoadSet (nextSet)
 end
 
 function AG.LoadPreviousSet()
-    local nextSet
-
-    if AG.setdata.lastset and AG.setdata.lastset > 1 then
-        nextSet = AG.setdata.lastset - 1
-    else
-        nextSet = MAXSLOT
+    -- init after reload
+    if not AG.setdata.lastset or AG.setdata.lastset == 0 then
+        AG.setdata.lastset = 1
     end
+
+    local nextSet = AG.setdata.lastset
+    local oldSet = AG.setdata.lastset
+
+    repeat
+        if nextSet > 1 then
+            nextSet = nextSet - 1
+        else
+            nextSet = MAXSLOT
+        end
+        trace ("loop through builds: old "..oldSet.." new "..nextSet)
+    until (nextSet == oldSet) or (not AG.IsBuildEmpty(AG.setdata, nextSet))
 
     AG.LoadSet (nextSet)
 end
@@ -3880,16 +3907,49 @@ function AG.LoadProfileByBindID(profileBindId)
     AG.LoadProfile(profileBindId)
 end
 
+function AG.IsBuildEmpty(setdata, buildId)
+    local set = setdata[buildId].Set
+    if not set then return true end 
+
+    return (set.gear == nil or set.gear == 0) 
+            and (set.skill == nil or (set.skill[1] == 0 and set.skill[2] == 0)) 
+            and (set.outfit == nil or set.outfit == -1)
+end
+
+function AG.IsProfileEmpty(profileId)
+
+    local setdata = AG.setdata.profiles[profileId].setdata
+    if not setdata then return true end
+
+    for buildId = 1, MAXSLOT do
+        if not AG.IsBuildEmpty(setdata, buildId) then
+            return false
+        end
+    end
+    return true
+end
+
 --- load the next profile according to sort-order
 function AG.LoadNextProfile()
 	trace("AG.LoadNextProfile()")
-	local newProfileId
-	
-    if AG.setdata.currentProfileId and AG.setdata.currentProfileId < MAX_PROFILES then
-        newProfileId = AG.setdata.currentProfileId + 1
-    else
-        newProfileId = 1
+ 
+    -- init profileId after reload
+    if not AG.setdata.currentProfileId or AG.setdata.currentProfileId == 0 then
+        AG.setdata.currentProfileId = 1
     end
+
+    local newProfileId = AG.setdata.currentProfileId
+	local oldProfileId = AG.setdata.currentProfileId
+
+    -- cycle through profiles until the next filled
+    repeat
+        if newProfileId < MAX_PROFILES then
+            newProfileId = newProfileId + 1
+        else
+            newProfileId = 1
+        end
+        trace ("loop through profiles: old "..oldProfileId.." new "..newProfileId)
+    until (newProfileId == oldProfileId) or (not AG.IsProfileEmpty(newProfileId))
 
     AG.LoadProfile(newProfileId)
 end
@@ -3897,13 +3957,24 @@ end
 --- load the previous profile according to sort-order
 function AG.LoadPreviousProfile()
 	trace("AG.LoadPreviousProfile()")
-	local newProfileId
-	
-    if AG.setdata.currentProfileId and AG.setdata.currentProfileId > 1 then
-        newProfileId = AG.setdata.currentProfileId - 1
-    else
-        newProfileId = MAX_PROFILES
+
+    -- init profileId after reload
+    if not AG.setdata.currentProfileId or AG.setdata.currentProfileId == 0 then
+        AG.setdata.currentProfileId = 1
     end
+
+	local newProfileId = AG.setdata.currentProfileId
+	local oldProfileId = AG.setdata.currentProfileId
+
+    -- cycle through profiles until the next filled
+    repeat
+        if newProfileId > 1 then
+            newProfileId = newProfileId - 1
+        else
+            newProfileId = MAX_PROFILES
+        end
+        trace ("loop through profiles: old "..oldProfileId.." new "..newProfileId)
+    until (newProfileId == oldProfileId) or (not AG.IsProfileEmpty(newProfileId))
 
     AG.LoadProfile(newProfileId)
 end
