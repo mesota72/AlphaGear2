@@ -51,6 +51,10 @@ globals = {
             previousProfile = {},
             accountVariableVersion = {},
             characterVariableVersion = {},
+            CHOICE_SHOW_ITEM_LEVEL_ALWAYS = {},
+            CHOICE_SHOW_ITEM_LEVEL_LOW = {},
+            CHOICE_SHOW_ITEM_LEVEL_NEVER = {},
+            
             BagsLockCount = {},
             initSetData = {},
             setdata_defaults = {},
@@ -76,7 +80,14 @@ globals = {
             LoadChampionPoints = {},
             LoadOutfitOrStyle = {},
             LoadOutfit = {},
-            Jobs = {},
+            Jobs = {
+                fields = {
+                    jobType = {},
+                    param1 = {},
+                    param2 = {},
+                    param3 = {}
+                }
+            },
             NextEventTime  = {},
             InBulkMode = {},
             SetConnect = {},
@@ -122,7 +133,12 @@ globals = {
                             getFCOISGearSetMarkerIconsList = {},
                             setFCOISIconId = {}, 
                             isAddonReady = {}, 
-                            useAddon = {}
+                            useAddon = {},
+                            onPreChangeGearSet = {},
+                            onPostChangeGearSet = {},
+                            onRemoveGearSetFromBuild = {},
+                            onAssignGearSetToBuild = {},
+                            onChangeBuildIcon = {},
                         }
                     },
                     CSPS = {
@@ -139,7 +155,8 @@ globals = {
                             GetCPSProfiles = {}, 
                             CPS_KEEP = {},
                             isAddonReady = {}, 
-                            useAddon = {}
+                            useAddon = {},
+                            LoadCPSProfile = {}
                         }
                     },
                     GQSB = {
@@ -156,7 +173,8 @@ globals = {
                             STYLE_KEEP = {},
                             GetStyles = {},
                             isAddonReady = {}, 
-                            useAddon = {}
+                            useAddon = {},
+                            LoadStyle = {}
                         }
                     }
                 }
@@ -178,7 +196,138 @@ globals = {
                         }
                     }
                 }
-            }
+            },
+            account_defaults = {
+                fields = {
+                    options = {}
+                }
+            },
+            markerInventories = {
+                fields ={
+                    dataTypes = {
+                        fields = {
+                            setupCallback = {}
+                        }
+                    }
+                }
+            },
+            MAXSLOT = {},
+
+            -- methods
+            layoutControl = {},
+            handlePreChangeGearSetItems = {},
+            handlePostChangeGearSetItems = {},
+            handleRemoveGearSetFromBuild = {},
+            handleAssignGearSetToBuild = {},
+            DrawMenu = {},
+            DrawInventory = {},
+            GetIdTypeAndLink = {},
+            InsertItemInGearSet = {},
+            CreateButtonBarPanel= {},
+            CreateButtonBarLabel = {},
+            DrawSkillBarButtons = {},
+            DrawGearBarButtons = {},
+            SetupMainPanel = {},
+            SetupProfileCombo = {},
+            DrawBuild = {},
+            GetButton = {},
+            ComputeItemUsageMap = {},
+            ShowButton = {},
+            GetItemBorderColor = {},
+            OnDragReceive = {},
+            LoadItem = {},
+            GetBaseAbilityId = {},
+            LoadSkill = {},
+            GetSkillFromBar = {},
+            LoadBar = {},
+            MenuAction = {},
+            UpdateEditPanel = {},
+            OnShowSkills = {},
+            OnHideSkills = {},
+            OnShowInventory = {},
+            OnHideInventory = {},
+            HideEditPanel = {},
+            UpdateUI = {},
+            GetSetIcon = {}, 
+            ShowAdvancedOptionsDialog = {},
+            TooltipSet = {}, 
+            GetSoulgem = {}, 
+            HandleInventorySlotUpdate = {}, 
+            ClearAvailableEquipmentCachePlain = {}, 
+            ClearAvailableEquipmentCache = {}, 
+            IsItemLinkMythic = {}, 
+            IsItemMythic = {},
+            UnlockBags = {},
+            GetAvailableEquipmentCache = {},
+            SwapItemInCache = {},
+            GetItemFromBag = {},
+            GetSkill = {},
+            GetAbility = {},
+            LoadProfile = {},
+            IsBuildEmpty = {},
+            ToggleSet = {},
+            LoadNextSet = {},
+            LoadPreviousSet = {},
+            LoadSetInternal = {},
+            Undress = {},
+            DoTransfer = {},
+            WithdrawItem = {},
+            DepositItem = {},
+            UnequipItem = {},
+            MoveGearSetAll = {},
+            MoveGearSet = {},
+            PrepareToon = {},
+            LockBags = {},
+            EquipItem = {},
+            IsBagsLocked = {},
+            HandleOnUpdate = {},
+            Animate = {},
+            UpdateRepair = {},
+            showItemLevel = {},
+            SwapMessage = {},
+            isShowItemCondition = {},
+            getShowItemLevel = {},
+            GetKey = {},
+            UpdateGearBorder = {},
+            UpdateSetButtons = {},
+            UpdateItemLinks = {},
+            CommitEditProfileDialog = {},
+            UpdateSwapMessage = {},
+            InitializeEditProfileDialog = {},
+            UpdateCondition = {},
+            InitEditProfileDialog = {},
+            ShowEditProfileDialog = {},
+            SetupInventoryCallback = {},
+            isMarkSetItemsInBag = {},
+            GetItemLocation = {},
+            SetCallout = {},
+            SetGearConnection = {},
+            SetSkillConnection = {},
+            SetSetLock = {},
+            SetSetName = {},
+            RepairItemInStore = {},
+            UpdateChargedWeapons = {},
+            UpdateAndChargeItem = {},
+            RepairInStore = {},
+            isAutoChargeWeapons = {},
+            isShowWeaponIcon = {},
+            UpdatePoisonedWeapons = {},
+            UpdateWeaponStats = {},
+            ForceUpdateWeaponStats = {},
+            isShowMainButton = {},
+            isShowSetButtons = {},
+            isShowGearIcon = {},
+            isShowRepairCost = {},
+            setupItemQuality = {},
+            isCloseWindowOnMove = {},
+            isLockUI = {},
+            isAutoRepairAtStores = {},
+            setupShowItemLevel = {},
+            isShowActiveSet = {},
+            SetOptions = {},
+            AlignMainPanel = {},
+            UnalignMainPanel = {},
+            HideSwapMessage = {},
         }
     },
 
@@ -349,6 +498,7 @@ read_globals = {
     "EVENT_CLOSE_BANK",
     "EVENT_CURSOR_PICKUP",
     "EVENT_CURSOR_DROPPED",
+    "EVENT_ARMORY_BUILD_RESTORE_RESPONSE",
     "PlaySound",
     "ITEMTYPE_ARMOR",
     "ITEMTYPE_WEAPON",
