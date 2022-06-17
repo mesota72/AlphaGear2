@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.15.4'
+AG.version = 'v6.17.0'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
