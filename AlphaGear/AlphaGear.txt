@@ -1,5 +1,5 @@
 ## Title: |cFFAA33AlphaGear 2|r v6.17.0
-## APIVersion: 101033 101034
+## APIVersion: 101033 101034 101042
 ## Version: 6.17.0
 ## SavedVariables: AGX2_Account
 ## SavedVariables: AGX2_Character
