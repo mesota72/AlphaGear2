@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.17.0'
+AG.version = 'v6.17.0-mod.1'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -1466,7 +1466,7 @@ function AG.LoadSkill(nr, slot, pair)
 
     local res = ACTION_BAR_ASSIGNMENT_MANAGER:GetHotbar(pair - 1):AssignSkillToSlotByAbilityId(slot + 2, skillID)
     if not res then
-       d("|cFF0000Failed to set new skill due to a bug in ESO.|r Kill a mob and try again!")
+       d("|cFF0000Failed to set new skill.|r You are probably in combat, kill a mob and try again!")
     end
 end
 
@@ -1771,7 +1771,7 @@ function AG.LoadSetInternal(nr)
     trace("LoadSetInternal: %d", nr)
 
     if ZO_ActionBar_AreActionBarsLocked() then
-        d("Action bars are locked. Can't load set. You might have to relaod the UI!")
+        d("Action bars are locked. Can't load set. You might have to reload the UI!")
         return
     end
     
@@ -1812,7 +1812,9 @@ function AG.LoadSetInternal(nr)
 
     -- queue in swap message
     SWAP = true
-    table.insert(AG.Jobs, {AG.JOB_TYPE_SHOW_SWAP_MSG, nil, nil}) 
+    table.insert(AG.Jobs, {AG.JOB_TYPE_SHOW_SWAP_MSG, nil, nil})
+
+    d("Loading Set " .. tostring(AG.setdata[nr].Set.text[1]))
 end
 
 function AG.Undress(mode)
@@ -2095,10 +2097,16 @@ function AG.HandleOnUpdate()
                 delay = SKILL_CHANGE_DELAY
             elseif (jobType == AG.JOB_TYPE_START_BULK_MODE) then
                 AG.InBulkMode = true
+                -- d("bulk mode START")
+                -- AG.bulkStartTime = GetGameTimeMilliseconds()
                 trace("EVT: bulkmode on")
             elseif (jobType == AG.JOB_TYPE_STOP_BULK_MODE) then
                 AG.InBulkMode = false
+                -- d("bulk mode STOP")
+                -- d(string.format("bulk transfer took %d ms", GetGameTimeMilliseconds() - AG.bulkStartTime))
                 trace("EVT: bulkmode off")
+                -- Kyzer 11/25/21: apply the sort after bulk mode finishes
+                PLAYER_INVENTORY:UpdateList(AG.recentInventoryType)
             elseif (jobType == AG.JOB_TYPE_SHOW_SWAP_MSG) then
                 AG_SwapMessage:SetHidden(true)
                 AG_SwapMessageBg:SetHidden(true)
@@ -3753,6 +3761,142 @@ function AG.MenuAction(nr)
     end
 end
 
+-----------------------------
+-- start Kyzer's additions
+-- this file is too damn long
+-----------------------------
+function AG.ClearProfile(argString)
+    if (argString ~= "all" and argString ~= "gear" and argString ~= "skills" and argString ~= "sets") then
+        d("Really clear this entire profile? Type /agclear all||gear||skills||sets")
+        return
+    end
+
+    for index = 1, MAXSLOT do
+        -- Gear
+        if (argString == "all" or argString == "gear") then
+            AG.handlePreChangeGearSetItems(index)
+            for z = 1, #SLOTS do
+                AG.setdata[index].Gear[z] = { id = 0, link = 0 }
+                AG.ShowButton(WM:GetControlByName('AG_Button_Gear_'..index..'_'..z))
+            end
+            AG.handlePostChangeGearSetItems(index)
+        end
+
+        -- Skills
+        if (argString == "all" or argString == "skills") then
+            for z = 1,6 do
+                AG.setdata[index].Skill[z] = 0
+                AG.ShowButton(WM:GetControlByName('AG_Button_Skill_'..index..'_'..z))
+            end
+        end
+
+        -- Sets
+        if (argString == "all" or argString == "sets") then
+            AG.setdata[index].Set = { text = {0,0,0}, gear = 0, skill = {0,0}, icon = {0,0}, lock = 0, outfit = -1 }
+            AG.UpdateUI(index, index)
+            AG.UpdateSetButtons()
+            AG.HideEditPanel()
+        end
+    end
+end
+
+local function GetCharNames()
+    local charNames = {}
+    for index = 1, GetNumCharacters() do
+        local name, _, _, _, _, _, id, _ = GetCharacterInfo(index)
+        charNames[zo_strformat("<<1>>", name)] = true
+    end
+    return charNames
+end
+
+local otherCharVars = {}
+function AG.ImportProfile(argString)
+    if (argString == "") then
+        d("Usage: /agimport <character name> [profile id]\nNote: this does not import extensions / advanced settings")
+        local names = {}
+        for name, _ in pairs(GetCharNames()) do
+            table.insert(names, name)
+        end
+        d("Available Characters: " .. table.concat(names, ", "))
+        return
+    end
+
+    local lastSpaceIndex = string.find(argString, " [^ ]*$")
+    if (not lastSpaceIndex) then lastSpaceIndex = 0 end
+    local lastWord = string.sub(argString, lastSpaceIndex + 1)
+    local lastNum = tonumber(lastWord)
+    local charName = ""
+    if (lastNum == nil or lastSpaceIndex == 0) then
+        charName = argString
+    else
+        charName = string.sub(argString, 1, lastSpaceIndex - 1)
+    end
+
+    if (not GetCharNames()[charName]) then
+        d("No such character \"" .. charName .. "\"")
+        return
+    end
+    local otherData = otherCharVars[charName]
+    if (not otherData) then
+        d("Loading saved vars for \"" .. charName .. "\"")
+        otherData = ZO_SavedVars:New('AGX2_Character', AG.characterVariableVersion, nil, init_data, nil, nil, charName)
+        otherCharVars[charName] = otherData
+    end
+
+    -- List the available profiles
+    if (not lastNum) then
+        d("Available Profiles:")
+        for profileId = 1, MAX_PROFILES do
+            local profileName = otherData.profiles[profileId].name
+            d(zo_strformat("<<1>> - <<2>>", profileId, profileName))
+        end
+        d("To import a profile, type again: /agimport " .. charName .. " number")
+        return
+    end
+
+    -- Clear profile first
+    AG.ClearProfile("all")
+
+    -- Import profile
+    local otherProfile = otherData.profiles[lastNum]
+    d(zo_strformat("Importing gear from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    for index = 1, MAXSLOT do
+        AG.handlePreChangeGearSetItems(index)
+        for z = 1, #SLOTS do
+            AG.setdata[index].Gear[z] = { id = otherProfile.setdata[index].Gear[z].id, link = otherProfile.setdata[index].Gear[z].link }
+            AG.ShowButton(WM:GetControlByName('AG_Button_Gear_' .. index .. '_' .. z))
+        end
+        AG.handlePostChangeGearSetItems(index)
+    end
+
+    d(zo_strformat("Importing skills from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    for index = 1, MAXSLOT do
+        for z = 1,6 do
+            AG.setdata[index].Skill[z] = otherProfile.setdata[index].Skill[z]
+            AG.ShowButton(WM:GetControlByName('AG_Button_Skill_'..index..'_'..z))
+        end
+    end
+
+    d(zo_strformat("Importing sets from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    for index = 1, MAXSLOT do
+        local otherSet = otherProfile.setdata[index].Set
+        AG.setdata[index].Set = {
+            text = {otherSet.text[1], otherSet.text[2], otherSet.text[3]},
+            gear = otherSet.gear,
+            skill = {otherSet.skill[1], otherSet.skill[2]},
+            icon = {otherSet.icon[1], otherSet.icon[2]},
+            lock = otherSet.lock,
+            outfit = otherSet.outfit
+        }
+        AG.UpdateUI(index, index)
+    end
+    d("Done")
+end
+
+------------------------
+-- end Kyzer's additions
+------------------------
+
 function AG.Tooltip(c, visible, edit)
     -- trace('Tooltip')
     local function FadeIn(control)
@@ -4153,6 +4297,8 @@ function AG:Initialize()
 	
 	SLASH_COMMANDS["/alphagear"] = AG.ShowMain
 	SLASH_COMMANDS["/agdbg"] = AG.ToggleDebug
+    SLASH_COMMANDS["/agclear"] = AG.ClearProfile
+    SLASH_COMMANDS["/agimport"] = AG.ImportProfile
 	
 	-- initialize account wide settings
     AG.account = ZO_SavedVars:NewAccountWide('AGX2_Account', AG.accountVariableVersion, nil, AG.account_defaults)
@@ -4274,6 +4420,34 @@ function AG:Initialize()
     AlphaGear_RegisterIcon('AlphaGear/asset/horse.dds')
 
     SELECT = AG.setdata.lastset
+
+    -- Kyzer 12/5/21: fix /agimport because I pull that from the inactive set data
+    ZO_PreHook("ReloadUI", function() AG.storeProfile(AG.setdata.currentProfileId) end)
+    ZO_PreHook("Logout", function() AG.storeProfile(AG.setdata.currentProfileId) end)
+    ZO_PreHook("SetCVar", function() AG.storeProfile(AG.setdata.currentProfileId) end)
+    ZO_PreHook("Quit", function() AG.storeProfile(AG.setdata.currentProfileId) end)
+
+    -- Kyzer 11/25/21: prehook to skip sorting (due to AutoCategory lag) when performing bulk mode
+    -- Updated 12/5/21: hook after playeractivated due to AutoCategory change
+    AG.recentInventoryType = INVENTORY_BACKPACK
+    local prehookRetries = 0
+    if (AutoCategory) then
+        EVENT_MANAGER:RegisterForEvent(AG.name .. "PlayerActivated", EVENT_PLAYER_ACTIVATED, function()
+            EVENT_MANAGER:UnregisterForEvent(AG.name .. "PlayerActivated", EVENT_PLAYER_ACTIVATED)
+            EVENT_MANAGER:RegisterForUpdate(AG.name .. "ApplySortPrehook", 5000, function()
+                if (AutoCategory.Inited == true) then
+                    ZO_PreHook(PLAYER_INVENTORY, "ApplySort", function(self, inventoryType) AG.recentInventoryType = inventoryType return AG.InBulkMode end)
+                    -- d("Successfully prehooked ApplySort after AutoCategory init.")
+                    EVENT_MANAGER:UnregisterForUpdate(AG.name .. "ApplySortPrehook")
+                elseif (prehookRetries > 5) then
+                    d("Gave up trying to hook AutoCategory. Is something wrong? Yell at Kyzer, probably.")
+                    EVENT_MANAGER:UnregisterForUpdate(AG.name .. "ApplySortPrehook")
+                else
+                    prehookRetries = prehookRetries + 1
+                end
+            end)
+        end)
+    end
 
     AG.init = true
 end
