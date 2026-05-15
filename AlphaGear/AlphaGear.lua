@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.17.0-mod.1'
+AG.version = 'v6.17.0-mod.2'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -59,6 +59,7 @@ AG.account_defaults = {
 
         Champion = {
             UseCPSlots = false,
+            UseDynamicCP = false,
         },
 
         QuickSlot = {
@@ -1697,6 +1698,15 @@ function AG.LoadChampionPoints(buildID)
     local AGplugCPS = AG.plugins.CPSlots
     if AGplugCPS.useAddon() then
         AGplugCPS.LoadCPSProfile(AG.setdata[buildID].Set.CPSHostName, AG.setdata[buildID].Set.CPSProfileName)
+    end
+
+    local AGplugDCP = AG.plugins.DynamicCP
+    if (AGplugDCP.useAddon()) then
+        AGplugDCP.LoadSlottableSets({
+            Green = AG.setdata[buildID].Set.DCPSlotSetGreen,
+            Blue = AG.setdata[buildID].Set.DCPSlotSetBlue,
+            Red = AG.setdata[buildID].Set.DCPSlotSetRed,
+        })
     end
 end
 

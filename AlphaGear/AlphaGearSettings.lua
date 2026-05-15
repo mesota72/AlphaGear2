@@ -461,6 +461,14 @@ function AG:CreateSettingsPage()
 					default = intDefaults.Champion.UseCPSlots,
 					disabled = function() return not plugins.CPSlots.isAddonReady() end
 				},
+				{
+					type = "checkbox",
+					name = "Use Dynamic CP",
+					getFunc = function() return intOptions.Champion.UseDynamicCP end,
+					setFunc = function(value) intOptions.Champion.UseDynamicCP = value end,
+					default = intDefaults.Champion.UseDynamicCP,
+					disabled = function() return not plugins.DynamicCP.isAddonReady() end
+				},
 			},
 		},
 
