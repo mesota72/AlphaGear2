@@ -3908,43 +3908,7 @@ local function ImportProfileCommand(argString)
         return
     end
 
-    -- Clear profile first
-    AG.ClearProfile("all")
-
-    -- Import profile
-    local otherProfile = otherData.profiles[lastNum]
-    d(zo_strformat("Importing gear from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
-    for index = 1, MAXSLOT do
-        AG.handlePreChangeGearSetItems(index)
-        for z = 1, #SLOTS do
-            AG.setdata[index].Gear[z] = { id = otherProfile.setdata[index].Gear[z].id, link = otherProfile.setdata[index].Gear[z].link }
-            AG.ShowButton(WM:GetControlByName('AG_Button_Gear_' .. index .. '_' .. z))
-        end
-        AG.handlePostChangeGearSetItems(index)
-    end
-
-    d(zo_strformat("Importing skills from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
-    for index = 1, MAXSLOT do
-        for z = 1,6 do
-            AG.setdata[index].Skill[z] = otherProfile.setdata[index].Skill[z]
-            AG.ShowButton(WM:GetControlByName('AG_Button_Skill_'..index..'_'..z))
-        end
-    end
-
-    d(zo_strformat("Importing sets from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
-    for index = 1, MAXSLOT do
-        local otherSet = otherProfile.setdata[index].Set
-        AG.setdata[index].Set = {
-            text = {otherSet.text[1], otherSet.text[2], otherSet.text[3]},
-            gear = otherSet.gear,
-            skill = {otherSet.skill[1], otherSet.skill[2]},
-            icon = {otherSet.icon[1], otherSet.icon[2]},
-            lock = otherSet.lock,
-            outfit = otherSet.outfit
-        }
-        AG.UpdateUI(index, index)
-    end
-    d("Done")
+    AG.ImportProfile(GetUnitDisplayName("player"), charName, lastNum)
 end
 
 ------------------------
@@ -4447,6 +4411,7 @@ function AG:Initialize()
     AG:SetOptions()
     
     AG.InitEditProfileDialog()
+    AGImportDlg.Initialize()
     
     zo_callLater(AG.SwapMessage,900)
     -- AG_PanelOptionPanelPlus:SetAnchor(8,AG_Option_2,8,0,0)

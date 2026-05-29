@@ -161,14 +161,14 @@
             <Button name="$(parent)ImportProfileButton" clickSound="Click">
                 <Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)EditProfileButton" offsetX="2" />
                 <Dimensions y="35" x="35"/>
-                <Textures normal="esoui/art/buttons/edit_up.dds" pressed="esoui/art/buttons/edit_down.dds" mouseOver="esoui/art/buttons/edit_over.dds"/>
+                <Textures normal="esoui/art/buttons/edit_save_up.dds" pressed="esoui/art/buttons/edit_save_down.dds" mouseOver="esoui/art/buttons/edit_save_over.dds"/>
                 <OnClicked>AG.ShowImportDialog()</OnClicked>
             </Button>           
             
             
             <Control name="$(parent)ProfileSelect" inherits="ZO_ComboBox">
                 <Anchor point="LEFT" relativePoint="RIGHT" offsetX="10" relativeTo="$(parent)Name" />
-                <Anchor point="RIGHT" relativePoint="LEFT" offsetX="-10" relativeTo="$(parent)EditProfileButton" />
+                <Anchor point="RIGHT" relativePoint="LEFT" offsetX="-10" relativeTo="$(parent)ImportProfileButton" />
             </Control>
             
           </Controls>

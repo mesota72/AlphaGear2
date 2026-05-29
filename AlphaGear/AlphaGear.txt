@@ -31,6 +31,8 @@ AlphaGearSettings.lua
 dialogs/AG_EditProfileDialog.xml
 dialogs/AG_IntegrationsDialog.xml
 dialogs/AG_IntegrationsDialog.lua
+dialogs/AG_ImportDialog.xml
+dialogs/AG_ImportDialog.lua
 
 
 AlphaGear.xml

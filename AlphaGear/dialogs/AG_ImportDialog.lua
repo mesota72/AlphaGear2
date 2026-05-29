@@ -40,7 +40,7 @@ local function SetUpCharacterDropdown(contentControl, accountName)
 
     combo:ClearItems()
     for charName, _ in pairs(AGX2_Character.Default[accountName]) do
-        local entry = ZO_ComboBox:CreateItemEntry(charName, OnAccountSelected)
+        local entry = ZO_ComboBox:CreateItemEntry(charName, OnCharSelected)
         entry.charName = charName
         combo:AddItem(entry, ZO_COMBOBOX_SUPRESS_UPDATE)
     end
@@ -90,8 +90,8 @@ function AGImportDlg.Initialize()
         buttons =
         {
             {
-                control = GetControl(control, "Import"),
-                text = SI_DIALOG_ACCEPT,
+                control = GetControl(control, "Accept"),
+                text = "Import",
                 keybind = "DIALOG_PRIMARY",
                 callback = Commit,
             },  
