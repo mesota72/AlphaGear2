@@ -2564,6 +2564,10 @@ function AG.ShowAdvancedOptionsDialog()
     ZO_Dialogs_ShowDialog("AG_ADVANCED_BUILD_DIALOG", {buildNr = SELECT, buildName = Zero(AG.setdata[SELECT].Set.text[1]) or 'Build '..SELECT})
 end
 
+function AG.ShowImportDialog()
+    ZO_Dialogs_ShowDialog("AG_IMPORT_DIALOG", {})
+end
+
 
 --- initializes the callback for drawing AG or FCOIS marks on gear items
 function AG.SetupInventoryCallback()
@@ -3820,7 +3824,47 @@ local function GetCharNames()
 end
 
 local otherCharVars = {}
-function AG.ImportProfile(argString)
+function AG.ImportProfile(accountName, charName, profileNum)
+    -- Clear profile first
+    AG.ClearProfile("all")
+
+    -- Import profile
+    local otherProfile = AGX2_Character.Default[accountName][charName].profiles[profileNum]
+    d(zo_strformat("Importing gear from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    for index = 1, MAXSLOT do
+        AG.handlePreChangeGearSetItems(index)
+        for z = 1, #SLOTS do
+            AG.setdata[index].Gear[z] = { id = otherProfile.setdata[index].Gear[z].id, link = otherProfile.setdata[index].Gear[z].link }
+            AG.ShowButton(WM:GetControlByName('AG_Button_Gear_' .. index .. '_' .. z))
+        end
+        AG.handlePostChangeGearSetItems(index)
+    end
+
+    d(zo_strformat("Importing skills from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    for index = 1, MAXSLOT do
+        for z = 1,6 do
+            AG.setdata[index].Skill[z] = otherProfile.setdata[index].Skill[z]
+            AG.ShowButton(WM:GetControlByName('AG_Button_Skill_'..index..'_'..z))
+        end
+    end
+
+    d(zo_strformat("Importing sets from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    for index = 1, MAXSLOT do
+        local otherSet = otherProfile.setdata[index].Set
+        AG.setdata[index].Set = {
+            text = {otherSet.text[1], otherSet.text[2], otherSet.text[3]},
+            gear = otherSet.gear,
+            skill = {otherSet.skill[1], otherSet.skill[2]},
+            icon = {otherSet.icon[1], otherSet.icon[2]},
+            lock = otherSet.lock,
+            outfit = otherSet.outfit
+        }
+        AG.UpdateUI(index, index)
+    end
+    d("Done")
+end
+
+local function ImportProfileCommand(argString)
     if (argString == "") then
         d("Usage: /agimport <character name> [profile id]\nNote: this does not import extensions / advanced settings")
         local names = {}
@@ -4308,7 +4352,7 @@ function AG:Initialize()
     SLASH_COMMANDS["/alphagear"] = AG.ShowMain
     SLASH_COMMANDS["/agdbg"] = AG.ToggleDebug
     SLASH_COMMANDS["/agclear"] = AG.ClearProfile
-    SLASH_COMMANDS["/agimport"] = AG.ImportProfile
+    SLASH_COMMANDS["/agimport"] = ImportProfileCommand
     
     -- initialize account wide settings
     AG.account = ZO_SavedVars:NewAccountWide('AGX2_Account', AG.accountVariableVersion, nil, AG.account_defaults)
