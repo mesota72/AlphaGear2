@@ -464,7 +464,7 @@ function AG:CreateSettingsPage()
 				{
 					type = "checkbox",
 					name = "Use Dynamic CP",
-					tooltip = "Allows Dynamic CP slottable sets to be equipped alongside builds, via the Advanced Options dialog",
+					tooltip = "Allows Dynamic CP slottable sets to be equipped alongside builds, via the Advanced Options dialog. Requires Dynamic CP 3.3.0+",
 					getFunc = function() return intOptions.Champion.UseDynamicCP end,
 					setFunc = function(value) intOptions.Champion.UseDynamicCP = value end,
 					default = intDefaults.Champion.UseDynamicCP,
