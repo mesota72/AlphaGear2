@@ -3830,7 +3830,7 @@ function AG.ImportProfile(accountName, charName, profileNum)
 
     -- Import profile
     local otherProfile = AGX2_Character.Default[accountName][charName].profiles[profileNum]
-    d(zo_strformat("Importing gear from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    d(zo_strformat("Importing gear from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, profileNum, charName))
     for index = 1, MAXSLOT do
         AG.handlePreChangeGearSetItems(index)
         for z = 1, #SLOTS do
@@ -3840,7 +3840,7 @@ function AG.ImportProfile(accountName, charName, profileNum)
         AG.handlePostChangeGearSetItems(index)
     end
 
-    d(zo_strformat("Importing skills from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    d(zo_strformat("Importing skills from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, profileNum, charName))
     for index = 1, MAXSLOT do
         for z = 1,6 do
             AG.setdata[index].Skill[z] = otherProfile.setdata[index].Skill[z]
@@ -3848,7 +3848,7 @@ function AG.ImportProfile(accountName, charName, profileNum)
         end
     end
 
-    d(zo_strformat("Importing sets from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, lastNum, charName))
+    d(zo_strformat("Importing sets from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, profileNum, charName))
     for index = 1, MAXSLOT do
         local otherSet = otherProfile.setdata[index].Set
         AG.setdata[index].Set = {

@@ -16,11 +16,13 @@ local function SetUpProfileDropdown(contentControl, accountName, charName)
     local comboParent = contentControl:GetNamedChild("ProfileDropdown")
     local combo = ZO_ComboBox_ObjectFromContainer(comboParent)
 
+    combo:ClearItems()
+    if (not accountName or not charName) then return end
+
     local function OnProfileSelected(_, _, entry)
         selectedProfile = entry.profile
     end
 
-    combo:ClearItems()
     for profileNum, profileData in pairs(AGX2_Character.Default[accountName][charName].profiles) do
         local entry = ZO_ComboBox:CreateItemEntry(profileData.name, OnProfileSelected)
         entry.profile = profileNum
@@ -33,12 +35,14 @@ local function SetUpCharacterDropdown(contentControl, accountName)
     local comboParent = contentControl:GetNamedChild("CharacterDropdown")
     local combo = ZO_ComboBox_ObjectFromContainer(comboParent)
 
+    combo:ClearItems()
+    if (not accountName) then return end
+
     local function OnCharSelected(_, _, entry)
         selectedCharacter = entry.charName
         SetUpProfileDropdown(contentControl, accountName, entry.charName)
     end
 
-    combo:ClearItems()
     for charName, _ in pairs(AGX2_Character.Default[accountName]) do
         local entry = ZO_ComboBox:CreateItemEntry(charName, OnCharSelected)
         entry.charName = charName
@@ -77,6 +81,8 @@ local function SetUp()
     local control = AGImportDialog
 
     SetUpAccountDropdown(GetControl(control, "Content"))
+    SetUpCharacterDropdown(GetControl(control, "Content"))
+    SetUpProfileDropdown(GetControl(control, "Content"))
 end
 
 
