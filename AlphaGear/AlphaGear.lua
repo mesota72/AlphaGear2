@@ -803,6 +803,8 @@ function AG.SetupMainPanel()
     AG_UI_Button.data = { tip = AG.name }
     AG_PanelUndressArmor.data = { info = L.Unequip }
     AG_PanelUndressAll.data = { info = L.UnequipAll }
+    AG_PanelProfilePanelEditProfileButton.data = { info = "Edit profile properties" }
+    AG_PanelProfilePanelImportProfileButton.data = { info = "Import another profile" }
     AG_PanelSetPanelScrollChildEditPanelSetGearPanelGearLock.data = { info = L.Lock }
     
     AG.SetupProfileCombo()
