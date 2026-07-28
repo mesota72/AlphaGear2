@@ -3832,6 +3832,11 @@ function AG.ImportProfile(accountName, charName, profileNum)
 
     -- Import profile
     local otherProfile = AGX2_Character.Default[accountName][charName].profiles[profileNum]
+    if (not otherProfile.setdata) then
+        d(zo_strformat("Profile <<1>> (<<2>>) from character <<3>> is empty!", otherProfile.name, profileNum, charName))
+        return
+    end
+
     d(zo_strformat("Importing gear from profile <<1>> (<<2>>) from character <<3>>...", otherProfile.name, profileNum, charName))
     for index = 1, MAXSLOT do
         AG.handlePreChangeGearSetItems(index)
