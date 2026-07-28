@@ -68,11 +68,23 @@
                         <Control name="$(parent)DCPGreenDropdown" inherits="ZO_ComboBox">
                             <Anchor point="TOPLEFT" relativeTo="$(parent)DCPGreenLabel" relativePoint="TOPRIGHT"/>
                             <Anchor point="TOPRIGHT" relativeTo="$(parent)CPSProfileDropdown" relativePoint="BOTTOMRIGHT" offsetY="5"/>
+                            <OnMouseEnter>
+                                AGIntDlg.ShowDCPPreview(self)
+                            </OnMouseEnter>
+                            <OnMouseExit>
+                                ZO_Tooltips_HideTextTooltip()
+                            </OnMouseExit>
                         </Control>
 
                         <Control name="$(parent)DCPBlueDropdown" inherits="ZO_ComboBox">
                             <Anchor point="TOPLEFT" relativeTo="$(parent)DCPGreenDropdown" relativePoint="BOTTOMLEFT" offsetY="5"/>
                             <Anchor point="TOPRIGHT" relativeTo="$(parent)DCPGreenDropdown" relativePoint="BOTTOMRIGHT" offsetY="5"/>
+                            <OnMouseEnter>
+                                AGIntDlg.ShowDCPPreview(self)
+                            </OnMouseEnter>
+                            <OnMouseExit>
+                                ZO_Tooltips_HideTextTooltip()
+                            </OnMouseExit>
                         </Control>
                         <Label name="$(parent)DCPBlueLabel" font="ZoFontGame" color="59bae7" horizontalAlignment="LEFT" text="Warfare">
                             <Anchor point="RIGHT" relativeTo="$(parent)DCPBlueDropdown" relativePoint="LEFT"/>
@@ -83,6 +95,12 @@
                         <Control name="$(parent)DCPRedDropdown" inherits="ZO_ComboBox">
                             <Anchor point="TOPLEFT" relativeTo="$(parent)DCPBlueDropdown" relativePoint="BOTTOMLEFT" offsetY="5"/>
                             <Anchor point="TOPRIGHT" relativeTo="$(parent)DCPBlueDropdown" relativePoint="BOTTOMRIGHT" offsetY="5"/>
+                            <OnMouseEnter>
+                                AGIntDlg.ShowDCPPreview(self)
+                            </OnMouseEnter>
+                            <OnMouseExit>
+                                ZO_Tooltips_HideTextTooltip()
+                            </OnMouseExit>
                         </Control>
                         <Label name="$(parent)DCPRedLabel" font="ZoFontGame" color="e46b2e" horizontalAlignment="LEFT" text="Fitness">
                             <Anchor point="RIGHT" relativeTo="$(parent)DCPRedDropdown" relativePoint="LEFT"/>

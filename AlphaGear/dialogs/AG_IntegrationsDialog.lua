@@ -397,6 +397,11 @@ local function SetUpDynamicCPIntegration(control)
 end
 
 
+function AGIntDlg.ShowDCPPreview(control)
+    ZO_Tooltips_ShowTextTooltip(control, LEFT, "Preview:") -- TODO
+end
+
+
 function AGIntDlg.SetupChampionPointIntegration(control)
     SetupCPSlotsIntegration(control)
     SetUpDynamicCPIntegration(control)
