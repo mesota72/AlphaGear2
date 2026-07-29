@@ -55,6 +55,10 @@ function AGplugDCP.GetDCPSlottableSet(tree)
     return DynamicCP.GetSlottableSets(tree)
 end
 
+function AGplugDCP.GetDCPSlottableSetStars(tree, slotSetId)
+    return DynamicCP.GetSlottableSets(tree)[slotSetId]
+end
+
 
 -- initialization
 function AGplugDCP.LoadDynamicCP()

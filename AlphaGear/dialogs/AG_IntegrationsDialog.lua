@@ -396,9 +396,26 @@ local function SetUpDynamicCPIntegration(control)
     end
 end
 
+local COLORS = {
+    Green = "a5d752",
+    Blue = "59bae7",
+    Red = "e46b2e",
+}
 
 function AGIntDlg.ShowDCPPreview(control)
-    ZO_Tooltips_ShowTextTooltip(control, LEFT, "Preview:") -- TODO
+    local result = "Preview:"
+    for _, tree in ipairs(TREES) do
+        local slotSetId = AGIntDlg.selection["newDCPSlotSet" .. tree]
+        if (slotSetId) then
+            local stars = AGplugDCP.GetDCPSlottableSetStars(tree, slotSetId)
+            if (stars) then
+                for _, skillId in ipairs(stars) do
+                    result = zo_strformat("<<1>>\n|c<<2>><<C:3>>|r", result, COLORS[tree], GetChampionSkillName(skillId))
+                end
+            end
+        end
+    end
+    ZO_Tooltips_ShowTextTooltip(control, RIGHT, result)
 end
 
 
