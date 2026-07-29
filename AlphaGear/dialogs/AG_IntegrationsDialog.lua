@@ -404,10 +404,11 @@ local COLORS = {
 
 function AGIntDlg.ShowDCPPreview(control)
     local result = "Preview:"
+    local TREES = {"Green", "Blue", "Red"}
     for _, tree in ipairs(TREES) do
         local slotSetId = AGIntDlg.selection["newDCPSlotSet" .. tree]
         if (slotSetId) then
-            local stars = AGplugDCP.GetDCPSlottableSetStars(tree, slotSetId)
+            local stars = AG.plugins.DynamicCP.GetDCPSlottableSetStars(tree, slotSetId)
             if (stars) then
                 for _, skillId in ipairs(stars) do
                     result = zo_strformat("<<1>>\n|c<<2>><<C:3>>|r", result, COLORS[tree], GetChampionSkillName(skillId))
