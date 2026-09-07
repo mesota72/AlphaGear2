@@ -4475,6 +4475,28 @@ function AG:Initialize()
         end)
     end
 
+    -- Kyzer 9/7/26: Add LibRadialMenu entries
+    if (LibRadialMenu) then
+        local LRM = LibRadialMenu
+        LRM:RegisterAddon("AlphaGear 2", "AlphaGear 2")
+        for i = 1, MAXSLOT do
+            local texture
+            if (i <= 8 and CrutchAlerts) then
+                texture = string.format("CrutchAlerts/assets/shape/diamond_red_%d.dds", i)
+            else
+                texture = string.format("/esoui/art/icons/ability_weapon_0%02d.dds", i)
+            end
+
+            LRM:RegisterEntry(
+                "AlphaGear 2",
+                "Equip set " .. i,
+                "Set" .. i,
+                texture,
+                function() AG.LoadSet(i) end,
+                "Equips set (build) " .. i .. " of your current profile.")
+        end
+    end
+
     AG.init = true
 end
 

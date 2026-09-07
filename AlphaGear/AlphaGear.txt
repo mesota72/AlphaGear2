@@ -6,7 +6,7 @@
 ## Author: mesota
 ## Description: Anything you need to manage your builds. Configurable profiles, builds, skill and gear sets, auto repair and auto weapon charge, deposit and withdraw function. Originally by AlphaLemming.
 ## DependsOn: LibAddonMenu-2.0
-## OptionalDependsOn: LibZone FCOItemSaver ChampionPointsSlots CSPS AutoCategory
+## OptionalDependsOn: LibZone FCOItemSaver ChampionPointsSlots CSPS AutoCategory LibRadialMenu
 ## IsLibrary: false
 
 lang/en.lua
