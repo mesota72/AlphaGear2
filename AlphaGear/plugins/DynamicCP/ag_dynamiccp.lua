@@ -33,7 +33,7 @@ local AGplugDCP = AG.plugins.DynamicCP
 -- Functions
 ------------------------------------------------------------------------------------------------------------------------
 function AGplugDCP.isAddonReady()
-    return (DynamicCP ~= nil and DynamicCP.GetSlottableSets ~= nil) or false
+    return (DynamicCP ~= nil and DynamicCP.GetSlottableSets ~= nil and DynamicCP.CommitSlottableSetsSupportsSuppression) or false
 end
 
 function AGplugDCP.useAddon()
@@ -48,7 +48,7 @@ function AGplugDCP.LoadSlottableSets(sets)
     for tree, slotSetId in pairs(sets) do
         DynamicCP.QueueSlottableSet(DCP_API_UNIQUE_NAME, tree, slotSetId)
     end
-    DynamicCP.CommitSlottableSets(DCP_API_UNIQUE_NAME)
+    DynamicCP.CommitSlottableSets(DCP_API_UNIQUE_NAME, not AG.account.Integrations.Champion.DCPPrintNames, not AG.account.Integrations.Champion.DCPPrintSlottables)
 end
 
 function AGplugDCP.GetDCPSlottableSet(tree)

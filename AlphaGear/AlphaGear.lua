@@ -60,6 +60,8 @@ AG.account_defaults = {
         Champion = {
             UseCPSlots = false,
             UseDynamicCP = false,
+            DCPPrintNames = true,
+            DCPPrintSlottables = false,
         },
 
         QuickSlot = {
