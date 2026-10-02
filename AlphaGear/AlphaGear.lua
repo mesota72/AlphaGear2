@@ -556,8 +556,15 @@ function AG.DrawButton(p, name, btn, nr, x, xpos, ypos, show)
                             local abilityId = GetSlotBoundId(x+2)
                             local baseAbilityId = 0
                     
+                            -- Updated for scribing
                             if abilityId ~= 0 then
-                                baseAbilityId = AG.GetBaseAbilityId(abilityId)
+                                if IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(abilityId)) then
+                                    -- Crafted skill, the abilityId returned is the "CraftedAbilityID" which is like the base ID
+                                    baseAbilityId = abilityId
+                                else
+                                    -- Normal skill, 
+                                    baseAbilityId = AG.GetBaseAbilityId(abilityId)
+                                end
                             end
                     
                             AG.setdata[nr].Skill[x] = baseAbilityId
@@ -1063,8 +1070,15 @@ function AG.GetSkillFromBar(nr)
         local abilityId = GetSlotBoundId(x+2)
         local baseAbilityId = 0
 
+        -- Updated for scribing
         if abilityId ~= 0 then
-            baseAbilityId = AG.GetBaseAbilityId(abilityId)
+            if IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(abilityId)) then
+                -- Crafted skill, the abilityId returned is the "CraftedAbilityID" which is like the base ID
+                baseAbilityId = abilityId
+            else
+                -- Normal skill, 
+                baseAbilityId = AG.GetBaseAbilityId(abilityId)
+            end
         end
 
         AG.setdata[nr].Skill[x] = baseAbilityId
@@ -1426,35 +1440,51 @@ function AG.GetAbility(abilityId)
     end
 end
 
-
-function AG.LoadSkill(nr, slot)
-    if not nr or not slot then return end
+-- Updated to avoid the need to swap bars
+function AG.LoadSkill(nr, slot, pair)
+    if not nr or not slot or nr <= 0 or slot <= 0 then return end
+    if pair == nil then pair = GetActiveWeaponPairInfo() end -- slot on active hotbar if not specified
+    if pair ~= 1 and pair ~= 2 then return end -- invalid pair number
 
     local skillID = AG.setdata[nr].Skill[slot]
-    
-    -- TODO remove skill from bar, if set is locked and skillID == 0
-    if skillID == 0 then return end
-
-    local currentSkillID = GetSlotBoundId(slot+2)
-
-    if skillID ~= currentSkillID then
-        trace('SkillId in slot %d changed. Current: %d new: %d', slot, currentSkillID, skillID)
+    local currentSkillID = GetSlotBoundId(slot + 2, pair - 1)
+    if skillID == 0 or skillID == currentSkillID then return end    
+    trace('SkillId in slot %d changed. Current: %d new: %d', slot, currentSkillID, skillID)
+        
+    -- Updated for scribing
+    if(IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(skillID))) then
+        -- Crafted skill, incoming ability ID is the base ID
+        skillID = GetAbilityIdForCraftedAbilityId(skillID)
+        trace('Crafted skill to slot: %d', skillID)
+    else
+        -- Normal skill
         local newAbilityIndex = AG.GetAbility(skillID)
         local currentAbilityIndex = AG.GetAbility(currentSkillID)
+        if newAbilityIndex == 0 or newAbilityIndex == currentAbilityIndex then return end
+        trace('AbilityIndex has changed, replacing. Current AI: %d, New AI: %d', currentAbilityIndex, newAbilityIndex)    
+    end
 
-        if newAbilityIndex ~= 0 and currentAbilityIndex ~= newAbilityIndex then 
-            trace('AbilityIndex has changed, replacing. Current AI: %d, New AI: %d', currentAbilityIndex, newAbilityIndex)
-            local res, msg = CallSecureProtected('SelectSlotAbility', newAbilityIndex, slot+2) 
-
-            if not res then 
-                -- d("|cFF0000Failed to set new skill. Message:|r "..(msg or "<none>"))
-                d("|cFF0000Failed to set new skill due to a bug in ESO.|r Kill a mob and try again!")
-            end
-        end
+    local res = ACTION_BAR_ASSIGNMENT_MANAGER:GetHotbar(pair - 1):AssignSkillToSlotByAbilityId(slot + 2, skillID)
+    if not res then
+       d("|cFF0000Failed to set new skill due to a bug in ESO.|r Kill a mob and try again!")
     end
 end
 
+-- Added to support not needing to swap bars
+function AG.LoadSetBars(nr)
+    if not nr then return end
+    for pair = 1, 2 do
+        local skillLineNr = AG.setdata[nr].Set.skill[pair]
+        if skillLineNr and skillLineNr > 0 then
+            for slot = 1, 6 do AG.LoadSkill(skillLineNr, slot, pair) end
+        end
+    end
+    if AG.isShowWeaponIcon() then AG.ForceUpdateWeaponStats() end
+end
+
 function AG.LoadBar(nr)
+    -- Updated to skip the delayed call after loading set, both bars are already set
+    if SWAP then return end 
     if not nr then return end
     for slot = 1, 6 do AG.LoadSkill(nr,slot) end
 end
@@ -1769,11 +1799,13 @@ function AG.LoadSetInternal(nr)
     -- load gear
     if AG.setdata[nr].Set.gear ~= 0 then AG.LoadGear(AG.setdata[nr].Set.gear, nr) end
 
-    -- load skills, wait until gear has loaded
-    if AG.setdata[nr].Set.skill[pair] ~= 0 then
-        table.insert(AG.Jobs, {AG.JOB_TYPE_LOAD_SKILL_BAR, AG.setdata[nr].Set.skill[pair], nil}) 
-        --- AG.LoadBar(AG.setdata[nr].Set.skill[pair]) 
-    end
+    -- load skills
+    -- Updated to avoid waiting until gear is loaded
+    table.insert(AG.Jobs, {AG.JOB_TYPE_LOAD_SKILL_BAR, nr, nil})
+    --if AG.setdata[nr].Set.skill[pair] ~= 0 then
+    --    table.insert(AG.Jobs, {AG.JOB_TYPE_LOAD_SKILL_BAR, AG.setdata[nr].Set.skill[pair], nil})
+    --    --- AG.LoadBar(AG.setdata[nr].Set.skill[pair])
+    --end
 
     -- Load Champion Points
     AG.LoadChampionPoints(nr)
@@ -2018,9 +2050,10 @@ end
 
 
 function AG.HandleOnUpdate()
-    local ITEM_MOVE_DELAY = 100
-    local SKILL_CHANGE_DELAY = 100
-    local PREPRARE_TOON_DELAY = 1000
+    -- Updated with shorter delays for faster loading
+    local ITEM_MOVE_DELAY = 1
+    local SKILL_CHANGE_DELAY = 1
+    local PREPRARE_TOON_DELAY = 100
 
     if AG.init and #AG.Jobs > 0 then
         local CurrentTime = GetGameTimeMilliseconds()
@@ -2057,7 +2090,8 @@ function AG.HandleOnUpdate()
                     AG.UpdateUI() 
                 end
             elseif (jobType == AG.JOB_TYPE_LOAD_SKILL_BAR) then
-                AG.LoadBar(param1) 
+                -- Updated to load both bars without swapping
+                AG.LoadSetBars(param1)
                 delay = SKILL_CHANGE_DELAY
             elseif (jobType == AG.JOB_TYPE_START_BULK_MODE) then
                 AG.InBulkMode = true
@@ -2354,7 +2388,18 @@ function AG.UpdateEditPanel(nr)
     for x = 1,2 do
         for slot = 1,6 do
             if set.skill[x] ~= 0 and AG.setdata[set.skill[x]].Skill[slot] ~= 0 then
-                _, val = GetAbilityInfoByIndex(AG.GetAbility(AG.setdata[set.skill[x]].Skill[slot]))
+            
+                -- Updated for scribing
+                if IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(AG.setdata[set.skill[x]].Skill[slot])) then
+                    -- Crafted skill, get the specific version slotted
+                    local slottedId = GetAbilityIdForCraftedAbilityId(AG.setdata[set.skill[x]].Skill[slot])
+                    val = GetAbilityIcon(slottedId)
+                else
+                    -- Normal skill
+                    local abilityIndex = AG.GetAbility(AG.setdata[set.skill[x]].Skill[slot])
+                    _, val = GetAbilityInfoByIndex(abilityIndex)
+                end
+                
             else 
                 val = nil 
             end
@@ -3347,12 +3392,26 @@ function AG.ShowButton(c)
     local skill, gear = AG.setdata[nr].Skill, AG.setdata[nr].Gear
     if type == AG.MODE_SKILL then
         if skill[slot] ~= 0 then
-            local abilityIndex = AG.GetAbility(skill[slot])
-            if abilityIndex ~= 0 then
-                local _, icon = GetAbilityInfoByIndex(abilityIndex)
-                c:SetNormalTexture(icon)
-                c.data = { hint = L.Button[type] }
+            
+            -- Updated for scribing
+            if IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(skill[slot])) then
+                -- Crafted skill, get the specific version slotted
+                local slottedId = GetAbilityIdForCraftedAbilityId(skill[slot])
+                if slottedId ~= 0 then
+                    local icon = GetAbilityIcon(slottedId)
+                    c:SetNormalTexture(icon)
+                    c.data = { hint = L.Button[type] }
+                end
+            else
+                -- Normal skill
+                local abilityIndex = AG.GetAbility(skill[slot])
+                if abilityIndex ~= 0 then
+                    local _, icon = GetAbilityInfoByIndex(abilityIndex)
+                    c:SetNormalTexture(icon)
+                    c.data = { hint = L.Button[type] }
+                end
             end
+            
         else
             c:SetNormalTexture()
             c.data = nil
@@ -3426,29 +3485,61 @@ function AG.HandleCursorPickup(eventCode, cursorType, param1, param2, param3, pa
     elseif cursorType == MOUSE_CONTENT_ACTION then
         local sourceSlot = param2
         local abilityIndex = param3
-        local abilityId = GetAbilityIdByIndex(abilityIndex)
-        local baseAbilityId = AG.GetBaseAbilityId(abilityId)
-
-        trace ('Slot %d, AbilityIndex: %d, AbilityId: %d, BaseAbilityId: %d', sourceSlot, abilityIndex, abilityId, baseAbilityId)
-
-        local baseSkillType, baseSkillindex, baseAbilityIndex, morphChoice = GetSpecificSkillAbilityKeysByAbilityId(baseAbilityId)
-        trace ('BaseSkilltype %d, BaseSkillIndex: %d, BaseAbilityIndex: %d', baseSkillType, baseSkillindex, baseAbilityIndex)
-
-        if baseSkillType and baseSkillindex and baseAbilityIndex then
-            local _,_,_,_, ultimate, purchased = GetSkillAbilityInfo(baseSkillType, baseSkillindex, baseAbilityIndex)
-            trace ('Ultimate %s, purchased: %s', tostring(ultimate), tostring(purchased))
-
-            if purchased then
-                DRAGINFO.id = baseAbilityId
-                DRAGINFO.ultimate = ultimate
-                DRAGINFO.panel = AG.MODE_SKILL
-                if ultimate then 
-                    DRAGINFO.slot = {6} 
-                else
-                    DRAGINFO.slot = {1,2,3,4,5}
+        
+        -- Updated for scribing
+        local baseAbilityId
+        if abilityIndex ~= 0 then
+            if IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(abilityIndex)) then
+                -- Crafted skill, the abilityIndex here is the "CraftedAbilityID" which is like the base ID
+                baseAbilityId = abilityIndex
+                
+                trace ('Slot %d, Crafted base: %d', sourceSlot, baseAbilityId)
+                
+                local craftedSkillType, craftedSkillLineIndex, craftedSkillIndex = GetSkillAbilityIndicesFromCraftedAbilityId(baseAbilityId)
+                trace ('CraftedSkillType %d, CraftedSkillLineIndex: %d, CraftedSkillIndex: %d', craftedSkillType, craftedSkillLineIndex, craftedSkillIndex)
+                
+                if craftedSkillType and craftedSkillLineIndex and craftedSkillIndex then
+                    local isUnlocked = IsCraftedAbilityUnlocked(baseAbilityId)
+                    local isScribed = IsCraftedAbilityScribed(baseAbilityId)
+                    trace ('Unlocked: %s, Scribed: %s', tostring(isUnlocked), tostring(isScribed))
+                    
+                    if isUnlocked and isScribed then
+                        DRAGINFO.id = baseAbilityId
+                        DRAGINFO.ultimate = false
+                        DRAGINFO.panel = AG.MODE_SKILL
+                        DRAGINFO.slot = {1,2,3,4,5}
+                        AG.SetCallout(1)
+                    end
                 end
-
-                AG.SetCallout(1)
+                
+            else
+                -- Normal skill
+                local abilityId = GetAbilityIdByIndex(abilityIndex)
+                baseAbilityId = AG.GetBaseAbilityId(abilityId)
+                
+                trace ('Slot %d, AbilityIndex: %d, AbilityId: %d, BaseAbilityId: %d', sourceSlot, abilityIndex, abilityId, baseAbilityId)
+                
+                local baseSkillType, baseSkillindex, baseAbilityIndex, morphChoice = GetSpecificSkillAbilityKeysByAbilityId(baseAbilityId)
+                trace ('BaseSkilltype %d, BaseSkillIndex: %d, BaseAbilityIndex: %d', baseSkillType, baseSkillindex, baseAbilityIndex)
+                
+                if baseSkillType and baseSkillindex and baseAbilityIndex then
+                    local _,_,_,_, ultimate, purchased = GetSkillAbilityInfo(baseSkillType, baseSkillindex, baseAbilityIndex)
+                    trace ('Ultimate %s, purchased: %s', tostring(ultimate), tostring(purchased))
+                
+                    if purchased then
+                        DRAGINFO.id = baseAbilityId
+                        DRAGINFO.ultimate = ultimate
+                        DRAGINFO.panel = AG.MODE_SKILL
+                        if ultimate then 
+                            DRAGINFO.slot = {6} 
+                        else
+                            DRAGINFO.slot = {1,2,3,4,5}
+                        end
+                
+                        AG.SetCallout(1)
+                    end
+                end
+                
             end
         end
     end
@@ -3693,16 +3784,29 @@ function AG.Tooltip(c, visible, edit)
             if nr > 0 then
 
                 if AG.setdata[nr].Skill[slot] == 0 then return end
-                local s1,s2,s3 = AG.GetSkill(AG.setdata[nr].Skill[slot])
-                if s1 and s2 and s3 then
-                    c.text = SkillTooltip
-                    InitializeTooltip(c.text,AG_Panel,3,0,0,9)
-                    c.text:SetSkillAbility(s1,s2,s3)
-                else
-                    c.text = InformationTooltip
-                    InitializeTooltip(c.text,AG_Panel,3,0,0,9)
-                    c.text:AddLine(L.ReassignHint)
-                end
+
+                    -- Updated for scribing
+                    if IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(AG.setdata[nr].Skill[slot])) then
+                        -- Crafted skill
+                        local abilityId = GetAbilityIdForCraftedAbilityId(AG.setdata[nr].Skill[slot])
+                        trace('Crafted skill: %d - %d', AG.setdata[nr].Skill[slot], abilityId)
+                        c.text = SkillTooltip
+                        InitializeTooltip(c.text,AG_Panel,3,0,0,9)
+                        c.text:SetAbilityId(abilityId)
+                    else
+                        -- Normal skill
+                        local s1,s2,s3 = AG.GetSkill(AG.setdata[nr].Skill[slot])
+                        if s1 and s2 and s3 then
+                            c.text = SkillTooltip
+                            InitializeTooltip(c.text,AG_Panel,3,0,0,9)
+                            c.text:SetSkillAbility(s1,s2,s3)
+                        else
+                            c.text = InformationTooltip
+                            InitializeTooltip(c.text,AG_Panel,3,0,0,9)
+                            c.text:AddLine(L.ReassignHint)
+                        end
+                    end
+                
             else return end
         elseif c.data and c.data.tip then
             c.text = InformationTooltip
@@ -3738,7 +3842,18 @@ function AG.TooltipSet(nr,visible)
             local ico = ''
             for x = 1,6 do
                 if set.skill[z] > 0 and AG.setdata[set.skill[z]].Skill[x] ~= 0 then
-                    _, val = GetAbilityInfoByIndex(AG.GetAbility(AG.setdata[set.skill[z]].Skill[x]))
+                
+                    -- Updated for scribing
+                    if IsCraftedAbilitySkill(GetSkillAbilityIndicesFromCraftedAbilityId(AG.setdata[set.skill[z]].Skill[x])) then
+                        -- Crafted skill, get the specific slotted version
+                        local slottedId = GetAbilityIdForCraftedAbilityId(AG.setdata[set.skill[z]].Skill[x])
+                        val = GetAbilityIcon(slottedId)
+                    else
+                        -- Normal skill
+                        local abilityIndex = AG.GetAbility(AG.setdata[set.skill[z]].Skill[x])
+                        _, val = GetAbilityInfoByIndex(abilityIndex)
+                    end
+                    
                 else 
                     val = 'AlphaGear/asset/grey1.dds'
                 end
