@@ -2,8 +2,8 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.17.0-mod.4'
-AG.author = 'mesota'
+AG.version = 'v7.0.0'
+AG.author = 'mesota, Kyzeragon'
 AG.init = false
 AG.pendingSet = -1
 AG.previousSet = nil
